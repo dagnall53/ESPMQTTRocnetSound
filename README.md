@@ -1,5 +1,6 @@
 # ESPMQTTRocnetSound
 This is a significant upgrade to my ESPWIFIRocnet project, adding .wav based sound effects for the Loco.
+
 Video of an initial test set-up without the loco: https://youtu.be/Vd0HbV_MXVI
 
 It gives full control over a loco's motor and front and rear lights and plays "chuff" and "whistle" sound effects that are very similar to those available from commercial DCC sound decoders. Its main limitation is that it cannot simultaneously play two tracks, so the "chuff" effects are temporarily muted whilst whistles etc are played.
@@ -40,12 +41,16 @@ The Chuff sequece uses four samples than are truncated and sequenced if the chuf
 
 ## Hardware
 The hardware expects to use a 12C DAC such as a Adafruit's I2SDAC or a Beyond9032 DAC connected "DIN" to D9/RX  "LRC" to D4 and "CLK" to D8 (D numbers are NodeMCU pin references).
+As default, the Front light is D3, Back light is D2, and a "Signal Led" is on D5 to provide indications that messages are being received etc..
+The Loco Servo motor controller is on D1. 
+This leaves a few ports of later upgrades such as servo controlled couplers.
+
 
 ## Playing sounds
 The system should say "Sound System Initiaed" on start up. After that it will play chuffs when the speed is greater than about 2MPH. Pressing the "F" buttons on the loco controller will play sound effects such as whistles, Brake Squeal and Bells.. (Unfortunately the system is only single track at the moment, so the chuff is temporarily "disengaged" when the effect is playing. However it is still very effective.
 
 
-## "LOCO" interface**
+## "LOCO" interface
 ====================
  The code is mainly for use as a "LOCO" or mobile node. .
  The "#define _LOCO_SERVO_Driven_Port 1" defines that port D1 will be a servo controlled motor driver for the locomotive. 
