@@ -1,8 +1,24 @@
 # ESPMQTTRocnetSound
 This is a significant upgrade to my ESPWIFIRocnet project, adding .wav based sound effects for the Loco.
-## Disclaimer
+Video of an initial test set-up without the loco: https://youtu.be/Vd0HbV_MXVI
+
+It gives full control over a loco's motor and front and rear lights and plays "chuff" and "whistle" sound effects that are very similar to those available from commercial DCC sound decoders. Its main limitation is that it cannot simultaneously play two tracks, so the "chuff" effects are temporarily muted whilst whistles etc are played.
+
+The interface is designed to be used as a Node in a RocRail http://wiki.rocrail.net/doku.php controlled model railway and uses the RocNet (http://wiki.rocrail.net/doku.php?id=rocnet:rocnet-prot-en) protocol with an MQTT interface using the PubSubClient https://github.com/knolleary/pubsubclient. 
+
+The code should compile and set up as a loco with address 3, Rocnode will be dependant on your router. Look at the serial terminal to see how the code is setting istself up!.
+The MQTT stuff will search for a MQTT broker from 192.168.0.3 to 192.168.0.50. The code is not set up for passwords, but this could be added. This range can be changed in the .ino, (line 141) I use Mosquitto on the same PC that runs Rocrail (note that rorail will need the MQTT address explicitly in its controller setup).  
+
+The MQTT in this program includes a "debug" message that can be subscribed to to give an indication of what s going on. I use it mainly to moonitor/check that nodes are still conneced. 
+
+The code includes ArduinoOTA updating. This worked with previous versions, but I have not checked it on this version. Note: I cannot see how to update the Audio clips using this method. 
+
+## Disclaimers and Thanks
 All this code is released under the GPL, and all of it is to be used at your own risk.  
-The sound effects playing system used is based on Earle F Philhower's ESP8266Audio library, and the disclaimers and notes on his sources as noted on his readme for ESP8266Audio should be read and noted.
+The sound effects playing system used is based on Earle F Philhower's ESP8266Audio library,https://github.com/earlephilhower/ESP8266Audio.
+The MQTT capability comes from the PubSubClient https://github.com/knolleary/pubsubclient. 
+The code can use WiFi Manager https://github.com/tzapu/WiFiManager.
+
 
 ## Prerequisites and Installation (from ESP8266Audio)
 First, make sure you are running the 2.4-rc2 or GIT head version of the Arduino libraries.
@@ -18,6 +34,7 @@ I have tried to individually attribute all the clips in the "data" directory, bu
 The Free Zimo sounds (http://www.zimo.at/soundprojekte/zimo/EASY-DAMPF/EASY-DAMPF.zip) 
 Paul Chettner's free sounds (http://www.zimo.at/soundprojekte/zimo/DA_R_GB_BR4MT/DA_R_GB_BR4MT.zip), 
 or sounds I have cut from a video of the IOW railway Terriers in operation.
+
 ### Technical
 The Chuff sequece uses four samples than are truncated and sequenced if the chuff period is reduced, giving a realistic (I think) effect for slow speeds. This is the same technique apparently used for commercial DCC sounds.
 
