@@ -76,6 +76,12 @@ The system should say "Sound System Initiaed" on start up. After that it will pl
     
 The Chuff period computation uses CV2, and 5 to re-extract the intended speed to generate a "ChuffPeriod" that is used to trigger chuffs. ChuffPeriod is set in 'SetServo@ in the Subroutines.h". By changing the constant "2590" in that location, the chuff to wheel rotation rate can be altered to get best effect for your loco. 
     
-    
+   
+ ## CODING 
+ My coding ability does not yet allow me to use libraries properly. All the code here relies on a lot of "global" type variables.I have tried to write in a more object oriented way when adding the "chuff" stuff, but failed, mainly because I am confused about how the Arduino IDE actually compiles what and when. This code worked when I put it on the github, but if you move the sequence of the #defines at the beginning it may well cause errors... If you would like to help reorganise the code into proper .h and .cpp stuff I would love to hear from you.
+Having said that, you can switch off the Loco define and it should compile as a "stationary" node, then  Switch off the Audio define to give access to a few more ports so you can use them as loco sensors or servos for points or........
+ 
+ 
+   
   
   
