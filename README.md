@@ -1,9 +1,11 @@
 # ESPMQTTRocnetSound
 This is a significant upgrade to my ESPWIFIRocnet project, adding .wav based sound effects for the Loco.
 
+Please note that there a lot of compiler directives (#defines) set in "Directives.h", these allow the code to be set up for a range of different uses and available hardware.
+
 Video of an initial test set-up without the loco: https://youtu.be/Vd0HbV_MXVI
 
-It gives full control over a loco's motor and front and rear lights and plays "chuff" and "whistle" sound effects that are very similar to those available from commercial DCC sound decoders. Its main limitation is that it cannot simultaneously play two tracks, so the "chuff" effects are temporarily muted whilst whistles etc are played.
+As a loco decoder it gives full control over a loco's motor and front and rear lights and plays "chuff" and "whistle" sound effects that are very similar to those available from commercial DCC sound decoders. Its main limitation is that it cannot simultaneously play two tracks, so the "chuff" effects are temporarily muted whilst whistles etc are played.
 
 The interface is designed to be used as a Node in a RocRail http://wiki.rocrail.net/doku.php controlled model railway and uses the RocNet (http://wiki.rocrail.net/doku.php?id=rocnet:rocnet-prot-en) protocol with an MQTT interface using the PubSubClient https://github.com/knolleary/pubsubclient. 
 
@@ -12,7 +14,7 @@ The MQTT stuff will search for a MQTT broker from 192.168.0.3 to 192.168.0.50. T
 
 The MQTT in this program includes a "debug" message that can be subscribed to to give an indication of what s going on. I use it mainly to moonitor/check that nodes are still conneced. 
 
-The code includes ArduinoOTA updating. This worked with previous versions, but I have not checked it on this version. Note: I cannot see how to update the Audio clips using this method. 
+The code includes ArduinoOTA updating. I have compiled, and uploaded over OTA, the code on both ESP8266 4M options (3M SPIFF and 1M SPIFF). Obviously with the 3M option, you can have longer or more sound effects. The "data" set of sound clips in the git should be able to be compiled in the 1M SPIFFS, <just>. 
 
 ## Disclaimers and Thanks
 All this code is released under the GPL, and all of it is to be used at your own risk.  
@@ -37,7 +39,7 @@ Paul Chettner's free sounds (http://www.zimo.at/soundprojekte/zimo/DA_R_GB_BR4MT
 or sounds I have cut from a video of the IOW railway Terriers in operation.
 
 ### Technical
-The Chuff sequece uses four samples than are truncated and sequenced if the chuff period is reduced, giving a realistic (I think) effect for slow speeds. This is the same technique apparently used for commercial DCC sounds.
+The Chuff sequence uses four samples that are truncated and sequenced if the chuff period is reduced, giving a realistic (I think) effect for slow speeds. This is the same technique apparently used for commercial DCC sounds.
 
 ## Hardware
 The hardware expects to use a 12C DAC such as a Adafruit's I2SDAC or a Beyond9032 DAC connected "DIN" to D9/RX  "LRC" to D4 and "CLK" to D8 (D numbers are NodeMCU pin references).
