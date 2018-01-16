@@ -12,7 +12,13 @@
                             GPIO10             SD3
    RST/Reset   RST          GPIO4              D2          4
    SPI SS      SDA(SS)      GPIO5              D1          5*/
+
+   
 //#if defined(ARDUINO_ESP8266_ESP01)
+
+ #include <SPI.h>
+ #include <MFRC522.h> //   mine is modified to give 10Mhz with ESP  #define SPI_CLOCK_DIV_4 10000000  #define myClock  10000000 // replaces    SPI_CLOCK_DIV4
+
 #define RST_PIN         D0           // Configurable, see typical pin layout above
 #define SS_PIN          D1           // Configurable, see typical pin layout above
 // Configurable, see typical pin layout above    //setup
@@ -56,7 +62,20 @@ int RFID_status;
 int RFID_read = 0;
 
 bool bRFIDquiet;
-
+void SetupRFID(void ){
+   Serial.println("------------------------ MFRC 522 testing -----------------");
+  //   * Setup rfidstuff *************************
+  SPI.begin();        // Init SPI bus//
+  mfrc522.PCD_Init(); // Init MFRC522 card
+  mfrc522.PCD_SetRegisterBitMask(mfrc522.RFCfgReg, (0x07 << 4)); //https://github.com/miguelbalboa/rfid/issues/43 //If you set Antenna Gain to Max it will increase reading distance
+  byte readReg = mfrc522.PCD_ReadRegister(mfrc522.VersionReg);
+  if ((readReg == 0x00) || (readReg == 0xFF)) { //missing reader
+    Serial.println(" Reader absent");
+  } else {
+    Serial.println(" Reader Present ");  //would like to have spi speed here.
+    bReaderActive = true;
+  }
+}
 
 void SendUID (uint8_t *UID, uint8_t PHASE, int where ) { //phase 1 =on 0=off
   //uint8_t SendMsg[4];

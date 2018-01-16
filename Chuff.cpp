@@ -1,3 +1,213 @@
+#include "Chuff.h"
+
+  #include "AudioFileSourceSPIFFS.h"
+  #include "AudioGeneratorWAV.h"
+  
+#include "Directives.h";
+#ifdef _AudioDAC
+  #include "AudioOutputI2SDAC.h"
+#endif
+#ifdef _AudioNoDAC
+  #include "AudioOutputI2SNoDAC.h"
+  #endif 
+
+AudioGeneratorWAV *wav;
+AudioFileSourceSPIFFS *file;
+#ifdef _AudioDAC
+  AudioOutputI2SDAC *out;
+#endif
+ #ifdef _AudioNoDAC
+  AudioOutputI2SNoDAC *out;
+#endif
+int ChuffCycle;  
+long LastChuff;
+bool WavDoneMsgSent;
+bool PlayingSoundEffect;
+bool ChuffPlaying;
+
+long SteamOnStarted;
+long SteamPulseDuration =50;
+long ChuffPeriod;
+String LastFilePlayed="--";
+String ChuffType; // ="/ch";  //String ChuffType ="/99_H1_";  //alternate chuff sound
+uint8_t SoundEffect_Request[3];
 
 
+
+
+extern void DebugSprintfMsgSend(int CX);
+extern char DebugMsg[127];
+extern uint8_t NodeMCUPinD[12];
+void SetChuffPeriod(long Setting){
+  ChuffPeriod=Setting;
+}
+void SetSoundEffect(uint8_t Data1,uint8_t Data2,uint8_t Data3){
+  SoundEffect_Request[1]=Data1;
+  SoundEffect_Request[2]=Data2;
+  SoundEffect_Request[3]=Data3;
+}
+void SetUpChuff(uint32_t TimeNow){ 
+ #ifdef _AudioDAC
+  out = new AudioOutputI2SDAC();
+  #endif
+ #ifdef _AudioNoDAC
+  out = new AudioOutputI2SNoDAC();
+#endif
+
+  SteamPulseDuration=5;  //5 for use as strobe
+  SteamOnStarted=TimeNow;
+  
+  wav = new AudioGeneratorWAV();
+  WavDoneMsgSent=false;
+  ChuffCycle=0;
+  LastChuff=TimeNow+1000;
+  Serial.printf("-- Sound System Initiating -- \n");
+  BeginPlay("/initiated.wav");// this wav file will play before anything else.
+  //BeginPlay("/Class 4 Guard's Whistle.wav");
+  PlayingSoundEffect=true;   
+  ChuffPlaying=false;
+  ChuffPeriod=1000;
+
+  delay(1); // allow time for setups..
+}
+/*
+Serial.println();
+Serial.print("Begin play <");
+Serial.print(Filename.substring(0,3));
+Serial.print ("> is equal to <");
+Serial.print (ChuffType.substring(0,3));
+Serial.println(">");
+*/
+
+void BeginPlay(const char *wavfilename){
+  String Filename;
+  if(!PlayingSoundEffect){
+  Filename=wavfilename;
+  WavDoneMsgSent=false;
+  if (Filename.substring(0,3)== ChuffType.substring(0,3)){  // playing chuffs 
+            PlayingSoundEffect=false;
+            ChuffPlaying=true;
+            #ifdef _AudioDebug
+            //Serial.printf("Chuff");
+            #endif
+           }
+       else {   // need to truncate previous ?? 
+        PlayingSoundEffect=true; 
+        if (wav->isRunning()) {
+                           wav->stop();
+                           #ifdef _AudioDebug
+                              Serial.printf("*audio previous wav stopped\n");
+                           #endif
+                  }
+        #ifdef _AudioDebug 
+       // Serial.println("");
+       // Serial.printf("*Audio  last file was:");
+       // Serial.print(LastFilePlayed);
+        Serial.printf(" Now Playing wav...");
+        Serial.println(wavfilename);
+        #endif
+            }      
+            if (LastFilePlayed!="--"){  delete file;    }//housekeeping.. delete last file  
+     LastFilePlayed=wavfilename;      
+     file = new AudioFileSourceSPIFFS(wavfilename);
+     wav->begin(file, out);
+  }}
+
+
+bool TimeToChuff(uint32_t TimeNow){
+  
+   if (ChuffPeriod>=2000){return false;} // switches off chuff at very low or stopped speeds
+   if (SoundEffectPlaying()){return false;}
+   if (TimeNow<=(LastChuff+ChuffPeriod)){return false;}
+    else {LastChuff=TimeNow; return true;}
+    }
+    
+
+void Chuff (String ChuffChoice){
+  String Chuff;
+ // if (ChuffPeriod>=60){ChuffChoice="/ch";} // test for switching sound effects with speed this works, but my fast sound clips need work 
+ // else{ChuffChoice="/CHF_";} 
+  
+  ChuffType=ChuffChoice;
+
+  
+  if (!PlayingSoundEffect){
+   if (wav->isRunning()) {wav->stop();  delay(1);
+                           #ifdef _AudioDebug
+                             // Serial.print-wav -Truncated\n");
+                              #endif
+                          }// truncate play
+   LastChuff=millis();
+   //steamoutputpin stuff  here for one puff per chuff 
+   SteamOnStarted=millis(); digitalWrite (NodeMCUPinD[SteamOutputPin],HIGH);
+   switch (ChuffCycle){ 
+                              case 0:Chuff=ChuffType+"1.wav";BeginPlay(Chuff.c_str());ChuffCycle=1;
+                              //Stuff here only for strobe use, one per rev to help set chuff rate
+                                  //SteamOnStarted=millis(); digitalWrite (NodeMCUPinD[SteamOutputPin],HIGH);
+                              break;
+                              case 1:Chuff=ChuffType+"2.wav";BeginPlay(Chuff.c_str());ChuffCycle=2;break;
+                              case 2:Chuff=ChuffType+"3.wav";BeginPlay(Chuff.c_str());ChuffCycle=3;break;
+                              case 3:Chuff=ChuffType+"4.wav";BeginPlay(Chuff.c_str());ChuffCycle=0;break;
+}}
+}
+void AudioLoop(int32_t TimeNow){
+ #ifdef SteamOutputPin
+              if ((SteamOnStarted+SteamPulseDuration)<=TimeNow){digitalWrite (NodeMCUPinD[SteamOutputPin],LOW);}
+ #endif 
+  
+  
+  if (wav->isRunning()) { if (!wav->loop()) {wav->stop();}//
+                        } 
+           else {delay(10);PlayingSoundEffect=false;
+                  if (!WavDoneMsgSent){
+                    //wav->stop();
+                     WavDoneMsgSent=true;  
+                     #ifdef _AudioDebug
+                      Serial.printf(" -WAV done\n"); 
+                     #endif
+                     }
+                 }
+                
+}
+  bool SoundEffectPlaying(void){
+    return PlayingSoundEffect;
+    }
+  void SoundEffects(void) {
+          if(bitRead(SoundEffect_Request[1],0)==1){
+            if (!PlayingSoundEffect){BeginPlay("/F1.wav");
+            DebugSprintfMsgSend( sprintf ( DebugMsg, "sfx-F1"));}
+                                       }
+          if(bitRead(SoundEffect_Request[1],1)==1){
+            if (!PlayingSoundEffect){BeginPlay("/F2.wav");
+            DebugSprintfMsgSend( sprintf ( DebugMsg, "sfx-F2"));}
+                                       }
+           if(bitRead(SoundEffect_Request[1],2)==1){
+           if (!PlayingSoundEffect){BeginPlay("/F3.wav");
+            DebugSprintfMsgSend( sprintf ( DebugMsg, "sfx-F3"));}
+                                       }
+          if(bitRead(SoundEffect_Request[1],3)==1){
+           if (!PlayingSoundEffect){BeginPlay("/F4.wav");
+            DebugSprintfMsgSend( sprintf ( DebugMsg, "sfx-F4"));}
+                                       }
+           if(bitRead(SoundEffect_Request[1],4)==1){
+           if (!PlayingSoundEffect){BeginPlay("/F5.wav");
+            DebugSprintfMsgSend( sprintf ( DebugMsg, "sfx-F5"));}
+                                       }
+           if(bitRead(SoundEffect_Request[1],5)==1){
+           if (!PlayingSoundEffect){BeginPlay("/F6.wav");
+            DebugSprintfMsgSend( sprintf ( DebugMsg, "sfx-F6"));}
+                                       }
+           if(bitRead(SoundEffect_Request[1],6)==1){
+           if (!PlayingSoundEffect){BeginPlay("/F7.wav");
+            DebugSprintfMsgSend( sprintf ( DebugMsg, "sfx-F7"));}
+                                       }
+           if(bitRead(SoundEffect_Request[1],7)==1){  // this is "F8" on DCC sounds 
+           if (!PlayingSoundEffect){BeginPlay("/F8.wav");
+            DebugSprintfMsgSend( sprintf ( DebugMsg, "sfx-F8"));}
+                                       }                            
+        
+  }  
+ 
+
+ 
 

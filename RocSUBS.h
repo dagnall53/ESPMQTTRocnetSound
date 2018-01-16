@@ -1,3 +1,57 @@
+//void MQTTFetch (char* topic, byte* payload, unsigned int Length) ;
+uint8_t DIRF = 0 ;
+
+uint8_t LastSetSpeed;
+uint32_t PingSendTime;
+boolean  PingReflected;
+
+#define NumberOfPorts  8
+
+
+uint8_t Value_for_PortD[NumberOfPorts + 1]; // ignore [0] so we can have 1...8
+uint8_t IO_Select_PortD[NumberOfPorts + 1];
+uint8_t DelaySetting_for_PortD[NumberOfPorts + 1];
+uint8_t Configuration_for_PortD[NumberOfPorts + 1];
+uint8_t EventMarker_for_PortD[NumberOfPorts + 1];
+uint8_t ID_High_for_PortD[NumberOfPorts + 1]; // idh
+uint8_t ID_Low_for_PortD[NumberOfPorts + 1]; //idl
+uint8_t XRef_Port[NumberOfPorts + 1];
+uint8_t Pi03_Setting_offposH[NumberOfPorts + 1];
+uint8_t Pi03_Setting_offposL[NumberOfPorts + 1];
+uint8_t Pi03_Setting_onposH[NumberOfPorts + 1];
+uint8_t Pi03_Setting_onposL[NumberOfPorts + 1];
+uint8_t Pi03_Setting_offsteps[NumberOfPorts + 1];
+uint8_t Pi03_Setting_onsteps[NumberOfPorts + 1];
+uint8_t Pi03_Setting_options[NumberOfPorts + 1];
+uint32_t Pi03_Setting_LastUpdated[NumberOfPorts + 1];
+
+
+extern void SERVOS(void);
+extern uint16_t servoLR(int state, int port);
+extern int FlashHL(int state, int port);
+uint8_t Speed_demand = 0 ;
+uint8_t Last_Speed_demand;
+
+#define Recipient_Addr  1   //  use with SetWordIn_msg_loc_value(sendMessage,Recipient_Addr,data  , or get sender or recipient addr  
+#define Sender_Addr 3       //  use with SetWordIn_msg_loc_value(sendMessage,Sender_Addr,data   
+#define Code_Request 0<<5
+#define Code_Event   1<<5
+#define Code_Reply   2<<5
+
+
+uint8_t ROC_netid;
+uint16_t ROC_recipient;
+uint16_t ROC_sender;
+uint8_t  ROC_group;
+uint8_t  ROC_code;
+uint8_t ROC_len;
+uint8_t ROC_Data[200];
+uint8_t ROC_OUT_DATA[200];
+uint16_t RocNodeID;
+
+
+
+
 void SetDefaultSVs(){
 
  
@@ -5,24 +59,24 @@ void SetDefaultSVs(){
 //rocnode
   //port and channel defaults
   for (int i=1; i<=NumberOfPorts; i++) {
-    NodePortValue[i]=1;
+    Value_for_PortD[i]=1;
 
     
-NodePortType[i]=0; //0= out 1= in
-NodePortDelay[i]=0;//10ms units, max. 255 * 10.
-NodePortConfig[i]=1;
-NodePortEvent[i]=0;
-NodePortidH[i]=0;  // idh
-NodePortidL[i]=0;  //idl
-NodePortport[i]=0;
-NodeChanneloffposH[i]=0; 
-NodeChanneloffposL[i]=160; 
-NodeChannelonposH[i]=2;  
-NodeChannelonposL[i]=88;  
-NodeChanneloffsteps[i]=1;  
-NodeChannelonsteps[i]=1; 
-NodeChanneloptions[i]=0;
-NodeChannelLastUpdated[i]=0;
+IO_Select_PortD[i]=0; //0= out 1= in
+DelaySetting_for_PortD[i]=0;//10ms units, max. 255 * 10.
+Configuration_for_PortD[i]=1;
+EventMarker_for_PortD[i]=0;
+ID_High_for_PortD[i]=0;  // idh
+ID_Low_for_PortD[i]=0;  //idl
+XRef_Port[i]=0;
+Pi03_Setting_offposH[i]=0; 
+Pi03_Setting_offposL[i]=160; 
+Pi03_Setting_onposH[i]=2;  
+Pi03_Setting_onposL[i]=88;  
+Pi03_Setting_offsteps[i]=1;  
+Pi03_Setting_onsteps[i]=1; 
+Pi03_Setting_options[i]=0;
+Pi03_Setting_LastUpdated[i]=0;
   }
 
   
@@ -33,134 +87,134 @@ NodeChannelLastUpdated[i]=0;
  // 5 AND 6 are sensor inputs for using with hall switches
  // 7 and 8 are servo outputs for points.
  
- NodePortValue[1]=0;
- NodePortType[1]=0;
- NodePortDelay[1]=0;
- NodePortConfig[1]=1;
- NodePortEvent[1]=0;
- NodePortidH[1]=0;
- NodePortidL[1]=0;
- NodePortport[1]=0;
- NodeChanneloffposH[1]=0;
- NodeChanneloffposL[1]=0;
- NodeChannelonposH[1]=9;
- NodeChannelonposL[1]=227;
- NodeChanneloffsteps[1]=1;
- NodeChannelonsteps[1]=1;
- NodeChanneloptions[1]=128;
- NodeChannelLastUpdated[1]=6184;
- NodePortValue[2]=0;
- NodePortType[2]=0;
- NodePortDelay[2]=0;
- NodePortConfig[2]=1;
- NodePortEvent[2]=0;
- NodePortidH[2]=0;
- NodePortidL[2]=0;
- NodePortport[2]=0;
- NodeChanneloffposH[2]=0;
- NodeChanneloffposL[2]=0;
- NodeChannelonposH[2]=7;
- NodeChannelonposL[2]=181;
- NodeChanneloffsteps[2]=1;
- NodeChannelonsteps[2]=1;
- NodeChanneloptions[2]=128;
- NodeChannelLastUpdated[2]=6184;
- NodePortValue[3]=0;
- NodePortType[3]=0;
- NodePortDelay[3]=0;
- NodePortConfig[3]=1;
- NodePortEvent[3]=0;
- NodePortidH[3]=0;
- NodePortidL[3]=0;
- NodePortport[3]=0;
- NodeChanneloffposH[3]=0;
- NodeChanneloffposL[3]=0;
- NodeChannelonposH[3]=15;
- NodeChannelonposL[3]=255;
- NodeChanneloffsteps[3]=1;
- NodeChannelonsteps[3]=1;
- NodeChanneloptions[3]=128;
- NodeChannelLastUpdated[3]=6184;
- NodePortValue[4]=0;
- NodePortType[4]=0;
- NodePortDelay[4]=0;
- NodePortConfig[4]=1;
- NodePortEvent[4]=0;
- NodePortidH[4]=0;
- NodePortidL[4]=0;
- NodePortport[4]=0;
- NodeChanneloffposH[4]=0;
- NodeChanneloffposL[4]=0;
- NodeChannelonposH[4]=15;
- NodeChannelonposL[4]=255;
- NodeChanneloffsteps[4]=1;
- NodeChannelonsteps[4]=1;
- NodeChanneloptions[4]=128;
- NodeChannelLastUpdated[4]=6184;
- NodePortValue[5]=0;
- NodePortType[5]=65;
- NodePortDelay[5]=0;
- NodePortConfig[5]=1;
- NodePortEvent[5]=0;
- NodePortidH[5]=0;
- NodePortidL[5]=0;
- NodePortport[5]=0;
- NodeChanneloffposH[5]=0;
- NodeChanneloffposL[5]=160;
- NodeChannelonposH[5]=2;
- NodeChannelonposL[5]=88;
- NodeChanneloffsteps[5]=1;
- NodeChannelonsteps[5]=1;
- NodeChanneloptions[5]=0;
- NodeChannelLastUpdated[5]=6184;
- NodePortValue[6]=0;
- NodePortType[6]=65;
- NodePortDelay[6]=0;
- NodePortConfig[6]=1;
- NodePortEvent[6]=0;
- NodePortidH[6]=0;
- NodePortidL[6]=0;
- NodePortport[6]=0;
- NodeChanneloffposH[6]=0;
- NodeChanneloffposL[6]=160;
- NodeChannelonposH[6]=2;
- NodeChannelonposL[6]=88;
- NodeChanneloffsteps[6]=1;
- NodeChannelonsteps[6]=1;
- NodeChanneloptions[6]=0;
- NodeChannelLastUpdated[6]=6184;
- NodePortValue[7]=0;
- NodePortType[7]=0;
- NodePortDelay[7]=0;
- NodePortConfig[7]=1;
- NodePortEvent[7]=0;
- NodePortidH[7]=0;
- NodePortidL[7]=0;
- NodePortport[7]=0;
- NodeChanneloffposH[7]=1;
- NodeChanneloffposL[7]=4;
- NodeChannelonposH[7]=1;
- NodeChannelonposL[7]=197;
- NodeChanneloffsteps[7]=1;
- NodeChannelonsteps[7]=1;
- NodeChanneloptions[7]=34;
- NodeChannelLastUpdated[7]=8131;
- NodePortValue[8]=0;
- NodePortType[8]=0;
- NodePortDelay[8]=0;
- NodePortConfig[8]=1;
- NodePortEvent[8]=0;
- NodePortidH[8]=0;
- NodePortidL[8]=0;
- NodePortport[8]=0;
- NodeChanneloffposH[8]=0;
- NodeChanneloffposL[8]=236;
- NodeChannelonposH[8]=1;
- NodeChannelonposL[8]=201;
- NodeChanneloffsteps[8]=1;
- NodeChannelonsteps[8]=1;
- NodeChanneloptions[8]=34;
- NodeChannelLastUpdated[8]=6184;
+ Value_for_PortD[1]=0;
+ IO_Select_PortD[1]=0;
+ DelaySetting_for_PortD[1]=0;
+ Configuration_for_PortD[1]=1;
+ EventMarker_for_PortD[1]=0;
+ ID_High_for_PortD[1]=0;
+ ID_Low_for_PortD[1]=0;
+ XRef_Port[1]=0;
+ Pi03_Setting_offposH[1]=0;
+ Pi03_Setting_offposL[1]=0;
+ Pi03_Setting_onposH[1]=9;
+ Pi03_Setting_onposL[1]=227;
+ Pi03_Setting_offsteps[1]=1;
+ Pi03_Setting_onsteps[1]=1;
+ Pi03_Setting_options[1]=128;
+ Pi03_Setting_LastUpdated[1]=6184;
+ Value_for_PortD[2]=0;
+ IO_Select_PortD[2]=0;
+ DelaySetting_for_PortD[2]=0;
+ Configuration_for_PortD[2]=1;
+ EventMarker_for_PortD[2]=0;
+ ID_High_for_PortD[2]=0;
+ ID_Low_for_PortD[2]=0;
+ XRef_Port[2]=0;
+ Pi03_Setting_offposH[2]=0;
+ Pi03_Setting_offposL[2]=0;
+ Pi03_Setting_onposH[2]=7;
+ Pi03_Setting_onposL[2]=181;
+ Pi03_Setting_offsteps[2]=1;
+ Pi03_Setting_onsteps[2]=1;
+ Pi03_Setting_options[2]=128;
+ Pi03_Setting_LastUpdated[2]=6184;
+ Value_for_PortD[3]=0;
+ IO_Select_PortD[3]=0;
+ DelaySetting_for_PortD[3]=0;
+ Configuration_for_PortD[3]=1;
+ EventMarker_for_PortD[3]=0;
+ ID_High_for_PortD[3]=0;
+ ID_Low_for_PortD[3]=0;
+ XRef_Port[3]=0;
+ Pi03_Setting_offposH[3]=0;
+ Pi03_Setting_offposL[3]=0;
+ Pi03_Setting_onposH[3]=15;
+ Pi03_Setting_onposL[3]=255;
+ Pi03_Setting_offsteps[3]=1;
+ Pi03_Setting_onsteps[3]=1;
+ Pi03_Setting_options[3]=128;
+ Pi03_Setting_LastUpdated[3]=6184;
+ Value_for_PortD[4]=0;
+ IO_Select_PortD[4]=0;
+ DelaySetting_for_PortD[4]=0;
+ Configuration_for_PortD[4]=1;
+ EventMarker_for_PortD[4]=0;
+ ID_High_for_PortD[4]=0;
+ ID_Low_for_PortD[4]=0;
+ XRef_Port[4]=0;
+ Pi03_Setting_offposH[4]=0;
+ Pi03_Setting_offposL[4]=0;
+ Pi03_Setting_onposH[4]=15;
+ Pi03_Setting_onposL[4]=255;
+ Pi03_Setting_offsteps[4]=1;
+ Pi03_Setting_onsteps[4]=1;
+ Pi03_Setting_options[4]=128;
+ Pi03_Setting_LastUpdated[4]=6184;
+ Value_for_PortD[5]=0;
+ IO_Select_PortD[5]=65;
+ DelaySetting_for_PortD[5]=0;
+ Configuration_for_PortD[5]=1;
+ EventMarker_for_PortD[5]=0;
+ ID_High_for_PortD[5]=0;
+ ID_Low_for_PortD[5]=0;
+ XRef_Port[5]=0;
+ Pi03_Setting_offposH[5]=0;
+ Pi03_Setting_offposL[5]=160;
+ Pi03_Setting_onposH[5]=2;
+ Pi03_Setting_onposL[5]=88;
+ Pi03_Setting_offsteps[5]=1;
+ Pi03_Setting_onsteps[5]=1;
+ Pi03_Setting_options[5]=0;
+ Pi03_Setting_LastUpdated[5]=6184;
+ Value_for_PortD[6]=0;
+ IO_Select_PortD[6]=65;
+ DelaySetting_for_PortD[6]=0;
+ Configuration_for_PortD[6]=1;
+ EventMarker_for_PortD[6]=0;
+ ID_High_for_PortD[6]=0;
+ ID_Low_for_PortD[6]=0;
+ XRef_Port[6]=0;
+ Pi03_Setting_offposH[6]=0;
+ Pi03_Setting_offposL[6]=160;
+ Pi03_Setting_onposH[6]=2;
+ Pi03_Setting_onposL[6]=88;
+ Pi03_Setting_offsteps[6]=1;
+ Pi03_Setting_onsteps[6]=1;
+ Pi03_Setting_options[6]=0;
+ Pi03_Setting_LastUpdated[6]=6184;
+ Value_for_PortD[7]=0;
+ IO_Select_PortD[7]=0;
+ DelaySetting_for_PortD[7]=0;
+ Configuration_for_PortD[7]=1;
+ EventMarker_for_PortD[7]=0;
+ ID_High_for_PortD[7]=0;
+ ID_Low_for_PortD[7]=0;
+ XRef_Port[7]=0;
+ Pi03_Setting_offposH[7]=1;
+ Pi03_Setting_offposL[7]=4;
+ Pi03_Setting_onposH[7]=1;
+ Pi03_Setting_onposL[7]=197;
+ Pi03_Setting_offsteps[7]=1;
+ Pi03_Setting_onsteps[7]=1;
+ Pi03_Setting_options[7]=34;
+ Pi03_Setting_LastUpdated[7]=8131;
+ Value_for_PortD[8]=0;
+ IO_Select_PortD[8]=0;
+ DelaySetting_for_PortD[8]=0;
+ Configuration_for_PortD[8]=1;
+ EventMarker_for_PortD[8]=0;
+ ID_High_for_PortD[8]=0;
+ ID_Low_for_PortD[8]=0;
+ XRef_Port[8]=0;
+ Pi03_Setting_offposH[8]=0;
+ Pi03_Setting_offposL[8]=236;
+ Pi03_Setting_onposH[8]=1;
+ Pi03_Setting_onposL[8]=201;
+ Pi03_Setting_offsteps[8]=1;
+ Pi03_Setting_onsteps[8]=1;
+ Pi03_Setting_options[8]=34;
+ Pi03_Setting_LastUpdated[8]=6184;
 
  CV[1]=3; //DEFAULT ADDR
  CV[47]=131; //(send serial and MQTT debug messages, have d4 flash at the loop rate (shows if something stops....)
@@ -177,134 +231,134 @@ NodeChannelLastUpdated[i]=0;
 
 // This set is for a Loco (dcc address 3) with Audio
  // ------Current EEPROM Settings----------
- NodePortValue[1]=0;
- NodePortType[1]=0;
- NodePortDelay[1]=0;
- NodePortConfig[1]=1;
- NodePortEvent[1]=0;
- NodePortidH[1]=0;
- NodePortidL[1]=0;
- NodePortport[1]=0;
- NodeChanneloffposH[1]=1;
- NodeChanneloffposL[1]=145;
- NodeChannelonposH[1]=1;
- NodeChannelonposL[1]=145;
- NodeChanneloffsteps[1]=0;
- NodeChannelonsteps[1]=0;
- NodeChanneloptions[1]=42;
- NodeChannelLastUpdated[1]=18054;
- NodePortValue[2]=0;
- NodePortType[2]=0;
- NodePortDelay[2]=0;
- NodePortConfig[2]=1;
- NodePortEvent[2]=0;
- NodePortidH[2]=0;
- NodePortidL[2]=0;
- NodePortport[2]=0;
- NodeChanneloffposH[2]=0;
- NodeChanneloffposL[2]=0;
- NodeChannelonposH[2]=7;
- NodeChannelonposL[2]=181;
- NodeChanneloffsteps[2]=1;
- NodeChannelonsteps[2]=1;
- NodeChanneloptions[2]=0;
- NodeChannelLastUpdated[2]=18054;
- NodePortValue[3]=0;
- NodePortType[3]=0;
- NodePortDelay[3]=0;
- NodePortConfig[3]=1;
- NodePortEvent[3]=0;
- NodePortidH[3]=0;
- NodePortidL[3]=0;
- NodePortport[3]=0;
- NodeChanneloffposH[3]=0;
- NodeChanneloffposL[3]=0;
- NodeChannelonposH[3]=15;
- NodeChannelonposL[3]=255;
- NodeChanneloffsteps[3]=1;
- NodeChannelonsteps[3]=1;
- NodeChanneloptions[3]=0;
- NodeChannelLastUpdated[3]=18054;
- NodePortValue[4]=0;
- NodePortType[4]=0;
- NodePortDelay[4]=0;
- NodePortConfig[4]=1;
- NodePortEvent[4]=0;
- NodePortidH[4]=0;
- NodePortidL[4]=0;
- NodePortport[4]=0;
- NodeChanneloffposH[4]=0;
- NodeChanneloffposL[4]=0;
- NodeChannelonposH[4]=15;
- NodeChannelonposL[4]=255;
- NodeChanneloffsteps[4]=1;
- NodeChannelonsteps[4]=1;
- NodeChanneloptions[4]=0;
- NodeChannelLastUpdated[4]=18054;
- NodePortValue[5]=0;
- NodePortType[5]=0;
- NodePortDelay[5]=0;
- NodePortConfig[5]=1;
- NodePortEvent[5]=0;
- NodePortidH[5]=0;
- NodePortidL[5]=0;
- NodePortport[5]=0;
- NodeChanneloffposH[5]=0;
- NodeChanneloffposL[5]=160;
- NodeChannelonposH[5]=2;
- NodeChannelonposL[5]=88;
- NodeChanneloffsteps[5]=1;
- NodeChannelonsteps[5]=1;
- NodeChanneloptions[5]=0;
- NodeChannelLastUpdated[5]=18054;
- NodePortValue[6]=0;
- NodePortType[6]=0;
- NodePortDelay[6]=10;
- NodePortConfig[6]=1;
- NodePortEvent[6]=0;
- NodePortidH[6]=0;
- NodePortidL[6]=0;
- NodePortport[6]=0;
- NodeChanneloffposH[6]=0;
- NodeChanneloffposL[6]=160;
- NodeChannelonposH[6]=3;
- NodeChannelonposL[6]=232;
- NodeChanneloffsteps[6]=1;
- NodeChannelonsteps[6]=1;
- NodeChanneloptions[6]=128;
- NodeChannelLastUpdated[6]=18054;
- NodePortValue[7]=0;
- NodePortType[7]=0;
- NodePortDelay[7]=0;
- NodePortConfig[7]=1;
- NodePortEvent[7]=0;
- NodePortidH[7]=0;
- NodePortidL[7]=0;
- NodePortport[7]=0;
- NodeChanneloffposH[7]=1;
- NodeChanneloffposL[7]=4;
- NodeChannelonposH[7]=14;
- NodeChannelonposL[7]=176;
- NodeChanneloffsteps[7]=1;
- NodeChannelonsteps[7]=1;
- NodeChanneloptions[7]=128;
- NodeChannelLastUpdated[7]=18054;
- NodePortValue[8]=0;
- NodePortType[8]=0;
- NodePortDelay[8]=0;
- NodePortConfig[8]=1;
- NodePortEvent[8]=0;
- NodePortidH[8]=0;
- NodePortidL[8]=0;
- NodePortport[8]=0;
- NodeChanneloffposH[8]=0;
- NodeChanneloffposL[8]=236;
- NodeChannelonposH[8]=1;
- NodeChannelonposL[8]=201;
- NodeChanneloffsteps[8]=1;
- NodeChannelonsteps[8]=1;
- NodeChanneloptions[8]=0;
- NodeChannelLastUpdated[8]=18054;
+ Value_for_PortD[1]=0;
+ IO_Select_PortD[1]=0;
+ DelaySetting_for_PortD[1]=0;
+ Configuration_for_PortD[1]=1;
+ EventMarker_for_PortD[1]=0;
+ ID_High_for_PortD[1]=0;
+ ID_Low_for_PortD[1]=0;
+ XRef_Port[1]=0;
+ Pi03_Setting_offposH[1]=1;
+ Pi03_Setting_offposL[1]=145;
+ Pi03_Setting_onposH[1]=1;
+ Pi03_Setting_onposL[1]=145;
+ Pi03_Setting_offsteps[1]=0;
+ Pi03_Setting_onsteps[1]=0;
+ Pi03_Setting_options[1]=42;
+ Pi03_Setting_LastUpdated[1]=18054;
+ Value_for_PortD[2]=0;
+ IO_Select_PortD[2]=0;
+ DelaySetting_for_PortD[2]=0;
+ Configuration_for_PortD[2]=1;
+ EventMarker_for_PortD[2]=0;
+ ID_High_for_PortD[2]=0;
+ ID_Low_for_PortD[2]=0;
+ XRef_Port[2]=0;
+ Pi03_Setting_offposH[2]=0;
+ Pi03_Setting_offposL[2]=0;
+ Pi03_Setting_onposH[2]=7;
+ Pi03_Setting_onposL[2]=181;
+ Pi03_Setting_offsteps[2]=1;
+ Pi03_Setting_onsteps[2]=1;
+ Pi03_Setting_options[2]=0;
+ Pi03_Setting_LastUpdated[2]=18054;
+ Value_for_PortD[3]=0;
+ IO_Select_PortD[3]=0;
+ DelaySetting_for_PortD[3]=0;
+ Configuration_for_PortD[3]=1;
+ EventMarker_for_PortD[3]=0;
+ ID_High_for_PortD[3]=0;
+ ID_Low_for_PortD[3]=0;
+ XRef_Port[3]=0;
+ Pi03_Setting_offposH[3]=0;
+ Pi03_Setting_offposL[3]=0;
+ Pi03_Setting_onposH[3]=15;
+ Pi03_Setting_onposL[3]=255;
+ Pi03_Setting_offsteps[3]=1;
+ Pi03_Setting_onsteps[3]=1;
+ Pi03_Setting_options[3]=0;
+ Pi03_Setting_LastUpdated[3]=18054;
+ Value_for_PortD[4]=0;
+ IO_Select_PortD[4]=0;
+ DelaySetting_for_PortD[4]=0;
+ Configuration_for_PortD[4]=1;
+ EventMarker_for_PortD[4]=0;
+ ID_High_for_PortD[4]=0;
+ ID_Low_for_PortD[4]=0;
+ XRef_Port[4]=0;
+ Pi03_Setting_offposH[4]=0;
+ Pi03_Setting_offposL[4]=0;
+ Pi03_Setting_onposH[4]=15;
+ Pi03_Setting_onposL[4]=255;
+ Pi03_Setting_offsteps[4]=1;
+ Pi03_Setting_onsteps[4]=1;
+ Pi03_Setting_options[4]=0;
+ Pi03_Setting_LastUpdated[4]=18054;
+ Value_for_PortD[5]=0;
+ IO_Select_PortD[5]=0;
+ DelaySetting_for_PortD[5]=0;
+ Configuration_for_PortD[5]=1;
+ EventMarker_for_PortD[5]=0;
+ ID_High_for_PortD[5]=0;
+ ID_Low_for_PortD[5]=0;
+ XRef_Port[5]=0;
+ Pi03_Setting_offposH[5]=0;
+ Pi03_Setting_offposL[5]=160;
+ Pi03_Setting_onposH[5]=2;
+ Pi03_Setting_onposL[5]=88;
+ Pi03_Setting_offsteps[5]=1;
+ Pi03_Setting_onsteps[5]=1;
+ Pi03_Setting_options[5]=0;
+ Pi03_Setting_LastUpdated[5]=18054;
+ Value_for_PortD[6]=0;
+ IO_Select_PortD[6]=0;
+ DelaySetting_for_PortD[6]=10;
+ Configuration_for_PortD[6]=1;
+ EventMarker_for_PortD[6]=0;
+ ID_High_for_PortD[6]=0;
+ ID_Low_for_PortD[6]=0;
+ XRef_Port[6]=0;
+ Pi03_Setting_offposH[6]=0;
+ Pi03_Setting_offposL[6]=160;
+ Pi03_Setting_onposH[6]=3;
+ Pi03_Setting_onposL[6]=232;
+ Pi03_Setting_offsteps[6]=1;
+ Pi03_Setting_onsteps[6]=1;
+ Pi03_Setting_options[6]=128;
+ Pi03_Setting_LastUpdated[6]=18054;
+ Value_for_PortD[7]=0;
+ IO_Select_PortD[7]=0;
+ DelaySetting_for_PortD[7]=0;
+ Configuration_for_PortD[7]=1;
+ EventMarker_for_PortD[7]=0;
+ ID_High_for_PortD[7]=0;
+ ID_Low_for_PortD[7]=0;
+ XRef_Port[7]=0;
+ Pi03_Setting_offposH[7]=1;
+ Pi03_Setting_offposL[7]=4;
+ Pi03_Setting_onposH[7]=14;
+ Pi03_Setting_onposL[7]=176;
+ Pi03_Setting_offsteps[7]=1;
+ Pi03_Setting_onsteps[7]=1;
+ Pi03_Setting_options[7]=128;
+ Pi03_Setting_LastUpdated[7]=18054;
+ Value_for_PortD[8]=0;
+ IO_Select_PortD[8]=0;
+ DelaySetting_for_PortD[8]=0;
+ Configuration_for_PortD[8]=1;
+ EventMarker_for_PortD[8]=0;
+ ID_High_for_PortD[8]=0;
+ ID_Low_for_PortD[8]=0;
+ XRef_Port[8]=0;
+ Pi03_Setting_offposH[8]=0;
+ Pi03_Setting_offposL[8]=236;
+ Pi03_Setting_onposH[8]=1;
+ Pi03_Setting_onposL[8]=201;
+ Pi03_Setting_offsteps[8]=1;
+ Pi03_Setting_onsteps[8]=1;
+ Pi03_Setting_options[8]=0;
+ Pi03_Setting_LastUpdated[8]=18054;
  // RN and CV settings
  RN[0]=0;
  CV[0]=0;
@@ -829,9 +883,10 @@ NodeChannelLastUpdated[i]=0;
  
 }
 
- uint16_t ROCNodeID(){
+ uint16_t Get_ROCNodeID(){
   return  RocNodeID;
  }
+ 
 String NICKname(){
 return Nickname;
 }
@@ -846,70 +901,70 @@ void WriteEEPROM() {
   for (int i = 1; i <= NumberOfPorts; i++) {
      
     
-Serial.print(" NodePortValue[");
+Serial.print(" Value_for_PortD[");
 Serial.print(i);
 Serial.print("]=");
-Serial.print(NodePortValue[i]);Serial.println(";");
-Serial.print(" NodePortType[");
+Serial.print(Value_for_PortD[i]);Serial.println(";");
+Serial.print(" IO_Select_PortD[");
 Serial.print(i);
 Serial.print("]=");
-Serial.print(NodePortType[i]);Serial.println(";");
-Serial.print(" NodePortDelay[");
+Serial.print(IO_Select_PortD[i]);Serial.println(";");
+Serial.print(" DelaySetting_for_PortD[");
 Serial.print(i);
 Serial.print("]=");
-Serial.print(NodePortDelay[i]);  Serial.println(";");  
-Serial.print(" NodePortConfig[");
+Serial.print(DelaySetting_for_PortD[i]);  Serial.println(";");  
+Serial.print(" Configuration_for_PortD[");
 Serial.print(i);
 Serial.print("]=");
-Serial.print(NodePortConfig[i]);Serial.println(";");
-Serial.print(" NodePortEvent[");
+Serial.print(Configuration_for_PortD[i]);Serial.println(";");
+Serial.print(" EventMarker_for_PortD[");
 Serial.print(i);
 Serial.print("]=");
-Serial.print(NodePortEvent[i]);Serial.println(";");
-Serial.print(" NodePortidH[");
+Serial.print(EventMarker_for_PortD[i]);Serial.println(";");
+Serial.print(" ID_High_for_PortD[");
 Serial.print(i);
 Serial.print("]=");
-Serial.print(NodePortidH[i]);Serial.println(";");
-Serial.print(" NodePortidL[");
+Serial.print(ID_High_for_PortD[i]);Serial.println(";");
+Serial.print(" ID_Low_for_PortD[");
 Serial.print(i);
 Serial.print("]=");
-Serial.print(NodePortidL[i]);Serial.println(";");
-Serial.print(" NodePortport[");
+Serial.print(ID_Low_for_PortD[i]);Serial.println(";");
+Serial.print(" XRef_Port[");
 Serial.print(i);
 Serial.print("]=");
-Serial.print(NodePortport[i]);Serial.println(";");
-Serial.print(" NodeChanneloffposH[");
+Serial.print(XRef_Port[i]);Serial.println(";");
+Serial.print(" Pi03_Setting_offposH[");
 Serial.print(i);
 Serial.print("]=");
-Serial.print(NodeChanneloffposH[i]);Serial.println(";");
-Serial.print(" NodeChanneloffposL[");
+Serial.print(Pi03_Setting_offposH[i]);Serial.println(";");
+Serial.print(" Pi03_Setting_offposL[");
 Serial.print(i);
 Serial.print("]=");
-Serial.print(NodeChanneloffposL[i]);Serial.println(";");
-Serial.print(" NodeChannelonposH[");
+Serial.print(Pi03_Setting_offposL[i]);Serial.println(";");
+Serial.print(" Pi03_Setting_onposH[");
 Serial.print(i);
 Serial.print("]=");
-Serial.print(NodeChannelonposH[i]);Serial.println(";");
-Serial.print(" NodeChannelonposL[");
+Serial.print(Pi03_Setting_onposH[i]);Serial.println(";");
+Serial.print(" Pi03_Setting_onposL[");
 Serial.print(i);
 Serial.print("]=");
-Serial.print(NodeChannelonposL[i]);Serial.println(";");
-Serial.print(" NodeChanneloffsteps[");
+Serial.print(Pi03_Setting_onposL[i]);Serial.println(";");
+Serial.print(" Pi03_Setting_offsteps[");
 Serial.print(i);
 Serial.print("]=");
-Serial.print(NodeChanneloffsteps[i]);Serial.println(";");
-Serial.print(" NodeChannelonsteps[");
+Serial.print(Pi03_Setting_offsteps[i]);Serial.println(";");
+Serial.print(" Pi03_Setting_onsteps[");
 Serial.print(i);
 Serial.print("]=");
-Serial.print(NodeChannelonsteps[i]);Serial.println(";");
-Serial.print(" NodeChanneloptions[");
+Serial.print(Pi03_Setting_onsteps[i]);Serial.println(";");
+Serial.print(" Pi03_Setting_options[");
 Serial.print(i);
 Serial.print("]=");
-Serial.print(NodeChanneloptions[i]);Serial.println(";");
-Serial.print(" NodeChannelLastUpdated[");
+Serial.print(Pi03_Setting_options[i]);Serial.println(";");
+Serial.print(" Pi03_Setting_LastUpdated[");
 Serial.print(i);
 Serial.print("]=");
-Serial.print(NodeChannelLastUpdated[i]);Serial.println(";");
+Serial.print(Pi03_Setting_LastUpdated[i]);Serial.println(";");
     }
 Serial.println(" // RN and CV settings");
 for (int i = 0; i <= 255 ; i++) {
@@ -934,22 +989,22 @@ Serial.println("// end of defaults ");
 
   
   for (int i = 1; i <= NumberOfPorts; i++) {
-    RN[20 + i] = NodePortValue[i];
-    RN[30 + i] = NodePortType[i];
-    RN[40 + i] = NodePortDelay[i];
-    RN[50 + i] = NodePortConfig[i];
-    RN[60 + i] = NodePortEvent[i];
-    RN[70 + i] = NodePortidH[i]; // idh
-    RN[80 + i] = NodePortidL[i]; //idl
-    RN[90 + i] = NodePortport[i];
+    RN[20 + i] = Value_for_PortD[i];
+    RN[30 + i] = IO_Select_PortD[i];
+    RN[40 + i] = DelaySetting_for_PortD[i];
+    RN[50 + i] = Configuration_for_PortD[i];
+    RN[60 + i] = EventMarker_for_PortD[i];
+    RN[70 + i] = ID_High_for_PortD[i]; // idh
+    RN[80 + i] = ID_Low_for_PortD[i]; //idl
+    RN[90 + i] = XRef_Port[i];
 
-    RN[100 + i] = NodeChanneloffposH[i];
-    RN[110 + i] = NodeChanneloffposL[i];
-    RN[120 + i] = NodeChannelonposH[i];
-    RN[130 + i] = NodeChannelonposL[i];
-    RN[140 + i] = NodeChanneloffsteps[i];
-    RN[150 + i] = NodeChannelonsteps[i];
-    RN[160 + i] = NodeChanneloptions[i];
+    RN[100 + i] = Pi03_Setting_offposH[i];
+    RN[110 + i] = Pi03_Setting_offposL[i];
+    RN[120 + i] = Pi03_Setting_onposH[i];
+    RN[130 + i] = Pi03_Setting_onposL[i];
+    RN[140 + i] = Pi03_Setting_offsteps[i];
+    RN[150 + i] = Pi03_Setting_onsteps[i];
+    RN[160 + i] = Pi03_Setting_options[i];
   }
 
   SetWordIn_msg_loc_value(RN, 1, RocNodeID);
@@ -996,23 +1051,26 @@ void ReadEEPROM() {
           
   mosquitto[3] = RN[14];
   RocNodeID = getTwoBytesFromMessageHL(RN, 1);
+#ifdef _ForceRocnetNodeID_to_subIPL
+  RocNodeID =subIPL;
+#endif
   for (int i = 1; i <= NumberOfPorts; i++) {
-    NodePortValue[i] = RN[20 + i];
-    NodePortType[i] = RN[30 + i];
-    NodePortDelay[i] = RN[40 + i];
-    NodePortConfig[i] = RN[50 + i];
-    NodePortEvent[i] = RN[60 + i];
-    NodePortidH[i] = RN[70 + i]; // idh
-    NodePortidL[i] = RN[80 + i]; //idl
-    NodePortport[i] = RN[90 + i];
+    Value_for_PortD[i] = RN[20 + i];
+    IO_Select_PortD[i] = RN[30 + i];
+    DelaySetting_for_PortD[i] = RN[40 + i];
+    Configuration_for_PortD[i] = RN[50 + i];
+    EventMarker_for_PortD[i] = RN[60 + i];
+    ID_High_for_PortD[i] = RN[70 + i]; // idh
+    ID_Low_for_PortD[i] = RN[80 + i]; //idl
+    XRef_Port[i] = RN[90 + i];
 
-    NodeChanneloffposH[i] = RN[100 + i];
-    NodeChanneloffposL[i] = RN[110 + i];
-    NodeChannelonposH[i] = RN[120 + i];
-    NodeChannelonposL[i] = RN[130 + i];
-    NodeChanneloffsteps[i] = RN[140 + i];
-    NodeChannelonsteps[i] = RN[150 + i];
-    NodeChanneloptions[i] = RN[160 + i];
+    Pi03_Setting_offposH[i] = RN[100 + i];
+    Pi03_Setting_offposL[i] = RN[110 + i];
+    Pi03_Setting_onposH[i] = RN[120 + i];
+    Pi03_Setting_onposL[i] = RN[130 + i];
+    Pi03_Setting_offsteps[i] = RN[140 + i];
+    Pi03_Setting_onsteps[i] = RN[150 + i];
+    Pi03_Setting_options[i] = RN[160 + i];
   }
 }
 
@@ -1075,98 +1133,6 @@ void Show_ROC_MSGS(uint8_t *payload) {
   Serial.print(Show_ROC_MSG());
 }
 
-void MQTTSendQ1 (char* topic, uint8_t * payload) { //QoS1 version
-  uint8_t Length;
-  digitalWrite (NodeMcuPortD[SignalLed], HIGH) ;  /// turn On
-  Length = payload[7] + 8;
-  MsgSendTime = millis();
-  MSGReflected = false;
-  copyUid(SentMessage, payload, 128); // nb  dest, source,
-  SentMessage_Length = Length;
-  strncpy(SentTopic, topic, 20);     // nb dest, source
-  if ((CV[47] & 0x04) == 0x04) {
-    Serial.print("*QOS 0 POST with check for 'reflection'[");
-    Serial.print(topic);
-    Serial.print("] ");
-    dump_byte_array(payload, Length);
-    Serial.println();
-  }
-  client.publish(topic, payload, Length); //send as qos 0..for now
-}
-void testConnection  (int Number) {
-  digitalWrite (NodeMcuPortD[SignalLed], HIGH) ;  /// turn On
-  PingSendTime = millis();
-  PingReflected = false;
-  byte id[2];
-  id[0] = Number >> 8;
-  id[1] = Number & 0xFF;
-  client.publish("PiNg", id, 2); //,strlen(payload));//send as qos 0..
-}
-
-void MQTTSend (char* topic, uint8_t * payload) { //replaces rocsend
-  uint8_t Length;
-  digitalWrite (NodeMcuPortD[SignalLed], HIGH) ;  /// turn On
-  Length = payload[7] + 8;
-
-  if ((CV[47] & 0x10) == 0x10) {
-    Serial.println();
-    Serial.print("*MQTT POST [");
-    Serial.print(topic);
-    Serial.print("] ");
-    dump_byte_array(payload, Length);
-    Serial.println();
-  }
-
-  client.publish(topic, payload, Length);
-
-}
-
-void MQTTFetch (char* topic, byte* payload, unsigned int Length) { //replaces rocfetch
-  // do a check on length matching payload[7] ??
-
-  if ((strncmp("PiNg", topic, 4) == 0)) {
-    Message_Length = 0; Message_Decoded = true;         // do not bother to do work on this, its a copy of what I sent
-    if (RocNodeID == ((payload[0] << 8) + payload[1])) {
-      PingReflected = true;
-    }
-    return;
-  }
-  if ((strncmp("rocnet/ht", topic, 9) == 0)) {
-    Message_Length = 0;
-    Message_Decoded = true;
-    return;
-  }
-
-  Message_Length = Length;
-  if (Message_Length >= 1) {
-
-    digitalWrite (NodeMcuPortD[SignalLed], HIGH) ;  /// turn On
-    ROC_netid = payload[0];
-    ROC_recipient = IntFromPacket_at_Addr(payload, Recipient_Addr);
-    ROC_sender = IntFromPacket_at_Addr(payload, Sender_Addr);
-    ROC_group = payload[5];
-    ROC_code = payload[6];
-    ROC_len = payload[7];
-    for (byte i = 1; i <= ROC_len; i++) {
-      ROC_Data[i] = payload[7 + i];
-    }
-    Message_Decoded = false;
-    if ((CV[47] & 0x08) == 0x08) {
-      Serial.print("*MQTT Received [");
-      Serial.print(topic);
-      Serial.print("] ");
-      dump_byte_array(payload, Message_Length);
-    }
-
-    if ((strncmp(SentTopic, topic, 20) == 0) && (compareUid(SentMessage, payload, Message_Length))) {
-      MSGReflected = true;
-    
-      cx = sprintf ( DebugMsg, "*Sensor Confirmed Address:%d state:%d", ROC_Data[4], ROC_Data[3]);
-      DebugMsgSend("debug", DebugMsg);
-    }
-  }
-}                                                 //*Sensor Seen Node:%d Address:%d state:%d
-
 
 void ROC_CS() { //group 1
   uint16_t CVNum;
@@ -1210,8 +1176,8 @@ void ROC_CS() { //group 1
           if (ROC_Data[6] == 1) { // this is a SET CV
 
 // mqtt debug message
-         cx = sprintf ( DebugMsg, "Set CV[%d]=%d",CVNum,ROC_Data[5]);
-           DebugMsgSend("debug", DebugMsg);
+         DebugSprintfMsgSend( sprintf ( DebugMsg, "Set CV[%d]=%d",CVNum,ROC_Data[5]));
+          
         //   Serial.println(DebugMsg);
             
             if (CVNum == 8) { // set defaults when CV8=13
@@ -1241,9 +1207,7 @@ void ROC_CS() { //group 1
            // Serial.print(CVNum);
            // Serial.print("] =");
            // Serial.println(CV[CVNum]);
-           cx = sprintf ( DebugMsg, "Get CV[%d]=%d",CVNum,CV[CVNum]);
-           DebugMsgSend("debug", DebugMsg);
-           Serial.println(DebugMsg);
+           DebugSprintfMsgSend( sprintf ( DebugMsg, "Get CV[%d]=%d",CVNum,CV[CVNum]));
           } //get end
 
           //     Serial.println("    Building and sending response"); Send response for both GET and SET...
@@ -1277,9 +1241,10 @@ void ROC_CS() { //group 1
 
   }
 }
-
-
-
+extern boolean ButtonState[12] ;
+extern int lastButtonState[12];
+extern void  SetSoundEffect(uint8_t Data1,uint8_t Data2,uint8_t Data3);
+extern void BeginPlay(const char *wavfilename);
 void ROC_MOBILE() { // group 2
   switch (ROC_code) {
     case 0:  {}    // NOP
@@ -1287,9 +1252,9 @@ void ROC_MOBILE() { // group 2
     case 1:  {}    // setup
       break;
     case 2:  {
-        int revoffset;
+      
         int servodemand;
-        revoffset = (CV[48] - 100); // else computed as unsigned and so cannot go negative!
+       
 
         //      Serial.print("Local:");
         //      Serial.print(CV[1]);
@@ -1300,72 +1265,78 @@ void ROC_MOBILE() { // group 2
         if (ROC_recipient == CV[1]) { //for me, do it!
           Serial.print (" Set Speed ");
           Serial.print( ROC_Data[1]);
-          SPEED = ROC_Data[1];
-          LastSetSpeed = SPEED;
+          LastSetSpeed = Speed_demand;
+          Speed_demand = ROC_Data[1];
+
           bitWrite(DIRF, 5, ROC_Data[2]);
           bitWrite(DIRF, 4, ROC_Data[3]);
+
+// do brakes here
+          if ((LastSetSpeed>= 5) && (Speed_demand ==0)){
+                  BeginPlay("/brakes.wav"); //brakes.wav should be a brake squeal sample
+          }
+
+          
           if  (!(bitRead(DIRF, 4))) {
-            digitalWrite (NodeMcuPortD[FRONTLight], 1);
-            digitalWrite (NodeMcuPortD[BACKLight], 1);
+            digitalWrite (NodeMCUPinD[FRONTLight], 1);
+            digitalWrite (NodeMCUPinD[BACKLight], 1);
           }
 
           //---------Direction Lights and Servo settings---------------
           if (bitRead(CV[29], 0)) {         // need to account for the  cv29 bit 0....
             if (bitRead(DIRF, 5 )) {
-              servodemand = 90 + (CV[2] + (SPEED * CV[5]) / 100);
+              servodemand = 90 - CV[6] - ((Speed_demand * CV[5])/240) ; // revoffset? CV[6] is "V(mid)", but used as reverse offset
+              //DebugSprintfMsgSend( sprintf ( DebugMsg, "test A Speed:%d  Servo:%d", ROC_Data[1], servodemand));
               if  (bitRead(DIRF, 4)) {
-                digitalWrite (NodeMcuPortD[FRONTLight], 0);
-                digitalWrite (NodeMcuPortD[BACKLight], 1);
+                digitalWrite (NodeMCUPinD[FRONTLight], 0);
+                digitalWrite (NodeMCUPinD[BACKLight], 1);
               }
             }
             else {
-              servodemand = 90 - (CV[2] + (SPEED * CV[5]) / 100);// - revoffset; 
+              servodemand =  90 + CV[2] + ((Speed_demand * CV[5])/240) ;
+              //DebugSprintfMsgSend( sprintf ( DebugMsg, "test B Speed:%d  Servo:%d", ROC_Data[1], servodemand));
               if  (bitRead(DIRF, 4)) {
-                digitalWrite (NodeMcuPortD[BACKLight], 0);
-                digitalWrite (NodeMcuPortD[FRONTLight], 1);
+                digitalWrite (NodeMCUPinD[BACKLight], 0);
+                digitalWrite (NodeMCUPinD[FRONTLight], 1);
               }
             }
           }
           else {   // cv29 =1
             if (!bitRead(DIRF, 5 )) {
-              servodemand =  90 + (CV[2] + (SPEED * CV[5]) / 100);
+              servodemand =  90 + CV[2] + ((Speed_demand * CV[5])/240) ;
+             // DebugSprintfMsgSend( sprintf ( DebugMsg, "test C  CV[2]:%d  Speed:%d  Servo:%d", CV[2], Speed_demand, servodemand));
+              
               if  (bitRead(DIRF, 4)) {
-                digitalWrite (NodeMcuPortD[BACKLight], 0);
-                digitalWrite (NodeMcuPortD[FRONTLight], 1);
+                digitalWrite (NodeMCUPinD[BACKLight], 0);
+                digitalWrite (NodeMCUPinD[FRONTLight], 1);
               }
             }
             else {
-              servodemand = 90 - (CV[2] + (SPEED * CV[5]) / 100) ; // revoffset?
+              servodemand = 90 - CV[6] - ((Speed_demand * CV[5])/240) ; // revoffset separate from fwd offset  CV[6] is "V(mid)", but used as reverse offset
+             // DebugSprintfMsgSend( sprintf ( DebugMsg, "test D  CV[6]:%d  Speed:%d  Servo:%d", CV[6], Speed_demand, servodemand));
               if  (bitRead(DIRF, 4)) {
-                digitalWrite (NodeMcuPortD[FRONTLight], 0);
-                digitalWrite (NodeMcuPortD[BACKLight], 1);
+                digitalWrite (NodeMCUPinD[FRONTLight], 0);
+                digitalWrite (NodeMCUPinD[BACKLight], 1);
               }
             }
-          }
+          }  //cv29 is 1
 
-          if ((SPEED == 00) || (SPEED == 0x01)) {
-            servodemand = 90;
-          }
+          if (Speed_demand == 00) {  servodemand = 90;  }
+        
           ButtonState[_LOCO_SERVO_Driven_Port] = false;
-          if (SPEED >= OLDSPEED) ( ButtonState[_LOCO_SERVO_Driven_Port] = true); // use button state to differentiate acc and decc needed to select between acc and decc
-          OLDSPEED = SPEED;
-          if (servodemand >= 180) {
-            servodemand = 180;
+          if (Speed_demand >= Last_Speed_demand) ( ButtonState[_LOCO_SERVO_Driven_Port] = true); // use button state to differentiate acc and decc needed to select between acc and decc
+          Last_Speed_demand = Speed_demand;
+          if (servodemand >= 179) {
+            servodemand = 179;
           }
           if ((servodemand) <= 1  ) {
-            servodemand = 0; // range for servo is 0-180
+            servodemand = 1; // servo range held to    1-179
           }
           Loco_motor_servo_demand =    servodemand; //allows use of signed before this point
-          Serial.print (" updated motor demand: ");
-          Serial.print( Loco_motor_servo_demand);
-          Serial.print ("deg  Dirn:");
-          Serial.print (bitRead(DIRF, 5));
-          Serial.print (" Lights:");
-          Serial.print (bitRead(DIRF, 4));      Serial.println();
-
+                
+          DebugSprintfMsgSend( sprintf ( DebugMsg, "Speed set to:%d Dir:%d Lights:%d Servo:%d", ROC_Data[1], (bitRead(DIRF, 5 )),(bitRead(DIRF, 4)), Loco_motor_servo_demand));
          
-          DebugSprintfMsgSend("debug", sprintf ( DebugMsg, "Speed set to:%d Dir:%d Lights:%d", ROC_Data[1], (bitRead(DIRF, 5 )),(bitRead(DIRF, 4)) ));
-        } 
+         } 
         #endif
         Message_Decoded = true;
 
@@ -1379,13 +1350,13 @@ void ROC_MOBILE() { // group 2
           //Serial.print(" Function change for :");  
           //Serial.print(ROC_recipient); Serial.print(" data :"); 
 #ifdef _Audio          
-          DebugSprintfMsgSend("debug", sprintf ( DebugMsg, "SFX-F changed <%X>h <%X>h <%X>h",ROC_Data[1],ROC_Data[2],ROC_Data[3]));  //X is hex d is decimal
+          DebugSprintfMsgSend( sprintf ( DebugMsg, "SFX-F changed <%X>h <%X>h <%X>h",ROC_Data[1],ROC_Data[2],ROC_Data[3]));  //X is hex d is decimal
           delay(1); // make sure its sent!
          
-         // SetSoundEffect(ROC_Data[1],ROC_Data[2],ROC_Data[3]); //if i could get it to compile!!
-          SoundEffect_Request[1]=ROC_Data[1];
-          SoundEffect_Request[2]=ROC_Data[2];
-          SoundEffect_Request[3]=ROC_Data[3];
+         SetSoundEffect(ROC_Data[1],ROC_Data[2],ROC_Data[3]); //if i could get it to compile!!
+          //SoundEffect_Request[1]=ROC_Data[1];
+          //SoundEffect_Request[2]=ROC_Data[2];
+          //SoundEffect_Request[3]=ROC_Data[3];
 /*               //ROC_Data[1];    // F1-F8   
                  //ROC_Data[2];    // F9-F16
                  //ROC_Data[3];    // F17-F24
@@ -1407,8 +1378,11 @@ void ROC_CLOCK() {
   hrs = ROC_Data[5];
   mins = ROC_Data[6];
   secs = ROC_Data[7];
-  PrintTime("Time synch");
-  //DebugSprintfMsgSend("debug", sprintf ( DebugMsg, "Time Synchronised  Connects<%s>  ",connects));
+  //PrintTime("Time synch \n");
+  // bad idea, to have lots of things transmitting immediately after synch.. 
+  //test with delay based on subIPL  
+  delay(subIPL);
+  DebugSprintfMsgSend( sprintf ( DebugMsg, " IPaddr .%d  Time Synchronised ",subIPL));
   
     Message_Decoded = true;
   //set / synch clock
@@ -1418,10 +1392,10 @@ void ROC_NODE() { // stationary decoders GROUP 3
   uint8_t TEMP;
 
   switch (ROC_code) {
-    case 8:  {  //dentify         class manuID  versionH  versionL  nr I/O  subipH  subipL
+    case 8:  {  //Identify         class manuID  versionH  versionL  nr I/O  subipH  subipL
         Message_Decoded = true; // we understand these even if they are not for us
         if ( (ROC_recipient ==   RocNodeID) || (    ROC_recipient ==   0)) {   //Serial.println();
-          Serial.print("IDENTIFY. This node is:");
+          Serial.print("Responding to IDENTIFY. This node is:");
           Serial.print(RocNodeID) ;
           sendMessage[0] = ROC_netid;
           SetWordIn_msg_loc_value(sendMessage, Recipient_Addr, ROC_sender);
@@ -1446,8 +1420,10 @@ void ROC_NODE() { // stationary decoders GROUP 3
             sendMessage[14 + i] = RN[3 + i];
           } // nickname, length RN[3] ESP is default
           Serial.println("'");
-
+          //delay(subIPL*2); //prevent simultaneous responses to identify query
           MQTTSend("rocnet/dc", sendMessage);
+          delay(100);
+         // DebugSprintfMsgSend( sprintf ( DebugMsg, " Responded to Identify "));
           // ROCSerialPrint(sendMessage);
         }
         Message_Decoded = true;
@@ -1493,7 +1469,7 @@ void ROC_NODE() { // stationary decoders GROUP 3
   }// end of case
 
 }// end rocnode
-
+extern int SDemand[12];
 
 void ROC_Programming() { // GROUP  5
   switch (ROC_code) {
@@ -1515,9 +1491,9 @@ void ROC_Programming() { // GROUP  5
           for (int i = 1 ;  i <= ((((ROC_Data[2] - ROC_Data[1]) + 1)) * 4); i = i + 4) { //  port# value type  delay
             port = ROC_Data[1] + TEMP;
             sendMessage[7 + i] = port; //port# value type  delay
-            sendMessage[7 + i + 1] = NodePortValue[port]; // value=
-            sendMessage[7 + i + 2] = NodePortType[port]; //type = switch
-            sendMessage[7 + i + 3] = NodePortDelay[port]; //delay
+            sendMessage[7 + i + 1] = Value_for_PortD[port]; // value=
+            sendMessage[7 + i + 2] = IO_Select_PortD[port]; //type = switch
+            sendMessage[7 + i + 3] = DelaySetting_for_PortD[port]; //delay
             //Serial.print(port);
             TEMP = TEMP + 1;
           }
@@ -1541,9 +1517,9 @@ void ROC_Programming() { // GROUP  5
             // Serial.print(ROC_Data[i+2]);
             // Serial.print(" Delay= :");
             // Serial.print(ROC_Data[i+3]);
-            NodePortValue[ROC_Data[i]] = ROC_Data[i + 1]; // value=
-            NodePortType[ROC_Data[i]] = ROC_Data[i + 2]; //type =
-            NodePortDelay[ROC_Data[i]] = ROC_Data[i + 3]; //delay
+            Value_for_PortD[ROC_Data[i]] = ROC_Data[i + 1]; // value=
+            IO_Select_PortD[ROC_Data[i]] = ROC_Data[i + 2]; //type =
+            DelaySetting_for_PortD[ROC_Data[i]] = ROC_Data[i + 3]; //delay
           }
           //Serial.println();
           WriteEEPROM();
@@ -1560,6 +1536,11 @@ void ROC_Programming() { // GROUP  5
           if ((ROC_Data[3] == subIPH) && (ROC_Data[4] == subIPL)) {
             Serial.print("Programming node:  set RocNet ID to:");
             RocNodeID = ((ROC_Data[1] << 8) + ROC_Data[2]);
+             RocNodeID = getTwoBytesFromMessageHL(RN, 1);
+#ifdef _ForceRocnetNodeID_to_subIPL
+  RocNodeID =subIPL;
+  Serial.print(" Node ID forced to subIPL");
+#endif
             SetWordIn_msg_loc_value(RN, 1, RocNodeID); // set RN 1 and 2
             Serial.print (RocNodeID);
             // ROCSerialPrint(recMessage);
@@ -1697,9 +1678,9 @@ RN[27]=0; //050 L  set 1 for "0x50" 3 for 0x50,0x51 etc..
           for (int i = 1 ;  i <= (((ROC_Data[2] - ROC_Data[1]) + 1) * 4); i = i + 4) { //  port# value type  delay
             port = ROC_Data[1] + TEMP;
             sendMessage[7 + i] = port; //port# value type  delay
-            sendMessage[7 + i + 1] = NodePortidH[port]; // idh
-            sendMessage[7 + i + 2] = NodePortidL[port]; //idl
-            sendMessage[7 + i + 3] = NodePortport[port]; //port
+            sendMessage[7 + i + 1] = ID_High_for_PortD[port]; // idh
+            sendMessage[7 + i + 2] = ID_Low_for_PortD[port]; //idl
+            sendMessage[7 + i + 3] = XRef_Port[port]; //port
             //     Serial.print(port);
             TEMP = TEMP + 1;
           }
@@ -1722,9 +1703,9 @@ RN[27]=0; //050 L  set 1 for "0x50" 3 for 0x50,0x51 etc..
             // Serial.print(ROC_Data[i+2]);
             // Serial.print(" Delay= :");
             // Serial.print(ROC_Data[i+3]);
-            NodePortidH[ROC_Data[i]] = ROC_Data[i + 1]; // value=
-            NodePortidL[ROC_Data[i]] = ROC_Data[i + 2]; //type =
-            NodePortport[ROC_Data[i]] = ROC_Data[i + 3]; //delay
+            ID_High_for_PortD[ROC_Data[i]] = ROC_Data[i + 1]; // value=
+            ID_Low_for_PortD[ROC_Data[i]] = ROC_Data[i + 2]; //type =
+            XRef_Port[ROC_Data[i]] = ROC_Data[i + 3]; //delay
           }
           // Serial.println();
           WriteEEPROM();
@@ -1756,13 +1737,13 @@ RN[27]=0; //050 L  set 1 for "0x50" 3 for 0x50,0x51 etc..
           for (int i = 1 ;  i <= ((((ROC_Data[2] - ROC_Data[1])) + 1) * 8); i = i + 8) { //  port# value type  delay
 
             sendMessage[7 + i] = port; //port# value type  delay
-            sendMessage[7 + i + 1] = NodeChanneloffposH[port];
-            sendMessage[7 + i + 2] = NodeChanneloffposL[port];
-            sendMessage[7 + i + 3] = NodeChannelonposH[port];
-            sendMessage[7 + i + 4] = NodeChannelonposL[port];
-            sendMessage[7 + i + 5] = NodeChanneloffsteps[port];
-            sendMessage[7 + i + 6] = NodeChannelonsteps[port];
-            sendMessage[7 + i + 7] = NodeChanneloptions[port];
+            sendMessage[7 + i + 1] = Pi03_Setting_offposH[port];
+            sendMessage[7 + i + 2] = Pi03_Setting_offposL[port];
+            sendMessage[7 + i + 3] = Pi03_Setting_onposH[port];
+            sendMessage[7 + i + 4] = Pi03_Setting_onposL[port];
+            sendMessage[7 + i + 5] = Pi03_Setting_offsteps[port];
+            sendMessage[7 + i + 6] = Pi03_Setting_onsteps[port];
+            sendMessage[7 + i + 7] = Pi03_Setting_options[port];
             Serial.print(" Ch:");
             Serial.print(port);
             Serial.print(" starting at:");
@@ -1789,13 +1770,13 @@ RN[27]=0; //050 L  set 1 for "0x50" 3 for 0x50,0x51 etc..
             // Serial.print(ROC_Data[i+2]);
             // Serial.print(" Delay= :");
             // Serial.print(ROC_Data[i+3]);
-            NodeChanneloffposH[ROC_Data[i]] = ROC_Data[i + 1];
-            NodeChanneloffposL[ROC_Data[i]] = ROC_Data[i + 2];
-            NodeChannelonposH[ROC_Data[i]] = ROC_Data[i + 3];
-            NodeChannelonposL[ROC_Data[i]] = ROC_Data[i + 4];
-            NodeChanneloffsteps[ROC_Data[i]] = ROC_Data[i + 5];
-            NodeChannelonsteps[ROC_Data[i]] = ROC_Data[i + 6];
-            NodeChanneloptions[ROC_Data[i]] = ROC_Data[i + 7];
+            Pi03_Setting_offposH[ROC_Data[i]] = ROC_Data[i + 1];
+            Pi03_Setting_offposL[ROC_Data[i]] = ROC_Data[i + 2];
+            Pi03_Setting_onposH[ROC_Data[i]] = ROC_Data[i + 3];
+            Pi03_Setting_onposL[ROC_Data[i]] = ROC_Data[i + 4];
+            Pi03_Setting_offsteps[ROC_Data[i]] = ROC_Data[i + 5];
+            Pi03_Setting_onsteps[ROC_Data[i]] = ROC_Data[i + 6];
+            Pi03_Setting_options[ROC_Data[i]] = ROC_Data[i + 7];
 
 
           }
@@ -1817,30 +1798,30 @@ RN[27]=0; //050 L  set 1 for "0x50" 3 for 0x50,0x51 etc..
           
           if (ROC_Data[4] == 0) {
             Serial.print(" updating Left position");
-            NodeChanneloffposH[ROC_Data[1]] = ROC_Data[1 + 1];
-            NodeChanneloffposL[ROC_Data[1]] = ROC_Data[1 + 2];
+            Pi03_Setting_offposH[ROC_Data[1]] = ROC_Data[1 + 1];
+            Pi03_Setting_offposL[ROC_Data[1]] = ROC_Data[1 + 2];
           }    // uses 150-600 so need to change it before using with servo
           if (ROC_Data[4] == 1) {
             Serial.print(" updating Right position");
-            NodeChannelonposH[ROC_Data[1]] = ROC_Data[1 + 1];
-            NodeChannelonposL[ROC_Data[1]] = ROC_Data[1 + 2];
+            Pi03_Setting_onposH[ROC_Data[1]] = ROC_Data[1 + 1];
+            Pi03_Setting_onposL[ROC_Data[1]] = ROC_Data[1 + 2];
           }      
 
           
    // ROCRAIL DesiredPos uses 150-600 so need to change it before using with servo 
-          if ((NodeChanneloptions[ROC_Data[1]] & 32) == 32) { ///SERVO....To address a channel instead of a port the port type servo must be set on the interface tab of switches and outputs
+          if ((Pi03_Setting_options[ROC_Data[1]] & 32) == 32) { ///SERVO....To address a channel instead of a port the port type servo must be set on the interface tab of switches and outputs
              DesiredPos = (ROC_Data[1 + 1] * 256) + ROC_Data[1 + 2];
              SDemand[ROC_Data[1]] = ((DesiredPos - 150) * 2) / 5;  // why??  // set demand set servo position for test
 
-             DebugSprintfMsgSend("debug", sprintf ( DebugMsg, "Servo[%d] to:%d degrees",ROC_Data[1],(((DesiredPos - 150) * 2) / 5)));
+             DebugSprintfMsgSend( sprintf ( DebugMsg, "Servo[%d] to:%d degrees",ROC_Data[1],(((DesiredPos - 150) * 2) / 5)));
 
               SERVOS();} // set the servo immediately range 150-600 (rocrail limmits) = 0 to 180
 
           // if PWM output   //  ROCRAIL DesiredPos sets 0-4095 range,,   Arduino PWM range is 0-1023, 
-           if ((NodeChanneloptions[ROC_Data[1]] & 128) == 128) { // set pwm immediately, arduino range is 0-1023, rocrail has 0-4095 range
+           if ((Pi03_Setting_options[ROC_Data[1]] & 128) == 128) { // set pwm immediately, arduino range is 0-1023, rocrail has 0-4095 range
             Serial.print(" PWM to :");
             Serial.println(DesiredPos/4);
-            analogWrite( NodeMcuPortD[ROC_Data[1]], DesiredPos/4);   
+            analogWrite( NodeMCUPinD[ROC_Data[1]], DesiredPos/4);   
             }
          // WriteEEPROM();// not ten sec, as we have all the data now..
           Data_Updated = true;
@@ -1853,7 +1834,7 @@ RN[27]=0; //050 L  set 1 for "0x50" 3 for 0x50,0x51 etc..
   }// end code switch
 }// end group 5
 
-
+extern uint32_t PortTimingDelay[12];
 void ROC_Outputs() { //group 9
 
   switch (ROC_code) {
@@ -1864,13 +1845,13 @@ void ROC_Outputs() { //group 9
           STATE = ROC_Data[1];
           
          
- if ((NodePortType[ROC_Data[4]] & 0x01) == 0) {      // Setting an output first make sure its an output!
+ if ((IO_Select_PortD[ROC_Data[4]] & 0x01) == 0) {      // Setting an output first make sure its an output!
             ButtonState[ROC_Data[4]] = STATE;
-      if ((NodePortType[ROC_Data[4]] & 64) == 64)   {  // invert ?
+      if ((IO_Select_PortD[ROC_Data[4]] & 64) == 64)   {  // invert ?
               STATE = !STATE;   // invert state
                                                     }   
-          if ((NodeChanneloptions[ROC_Data[4]] & 32) == 32) {   //SERVO....To address a channel instead of a port the port type servo must be set on the interface tab of switches and outputs
-          // cx = sprintf ( DebugMsg, "Setting Output %d (SERVO) to %d", ROC_Data[4], STATE); 
+          if ((Pi03_Setting_options[ROC_Data[4]] & 32) == 32) {   //SERVO....To address a channel instead of a port the port type servo must be set on the interface tab of switches and outputs
+          // DebugSprintfMsgSend( sprintf ( DebugMsg, "Setting Output %d (SERVO) to %d", ROC_Data[4], STATE)); 
           // DebugMsgSend("debug", DebugMsg);
            
             ButtonState[ROC_Data[4]] = STATE;
@@ -1881,9 +1862,9 @@ void ROC_Outputs() { //group 9
             if (SDemand[ROC_Data[4]] <= 0) {    // set limit
               SDemand[ROC_Data[4]] = 0;
             }
-            NodeChannelLastUpdated[ROC_Data[4]] = millis();  
-           cx = sprintf ( DebugMsg, "Setting Output %d (SERVO) to State(%d) = Position:%d ", ROC_Data[4],STATE,SDemand[ROC_Data[4]]); 
-           DebugMsgSend("debug", DebugMsg);
+            Pi03_Setting_LastUpdated[ROC_Data[4]] = millis();  
+           DebugSprintfMsgSend( sprintf ( DebugMsg, "Setting Output %d (SERVO) to State(%d) = Position:%d ", ROC_Data[4],STATE,SDemand[ROC_Data[4]])); 
+         
           /*PrintTime("Setting servo:");
             Serial.print (ROC_Data[4]);
             Serial.print (" to  ");//D1=on off  D4= Port
@@ -1891,32 +1872,32 @@ void ROC_Outputs() { //group 9
           */
           }   //        End of servo                                         
           else {   // not servo
-            if ((NodeChanneloptions[ROC_Data[4]] & 128) == 128) {// is channel blink set, if so, use PWM outputs as settings for on and off channel positions
+            if ((Pi03_Setting_options[ROC_Data[4]] & 128) == 128) {// is channel blink set, if so, use PWM outputs as settings for on and off channel positions
            //PrintTime("SET PWM OUTPUT D");Serial.print (ROC_Data[4]);
-           //   if((NodePortType[ROC_Data[4]] & 129) == 128){Serial.print(" flashing ");}
+           //   if((IO_Select_PortD[ROC_Data[4]] & 129) == 128){Serial.print(" flashing ");}
              
            //   Serial.print (" PWM set by rocrail  ");
            //   Serial.println (FlashHL(STATE, ROC_Data[4]));// STATE will record on or off, so we can turn flashing on and off
-              PortTimingDelay[ROC_Data[4]] = millis() + (NodePortDelay[ROC_Data[4]] * 10);
-              analogWrite( NodeMcuPortD[ROC_Data[4]], FlashHL(STATE, ROC_Data[4]));   // set pwm, arduino range is 0-1023, rocrail has 0-4095 range
+              PortTimingDelay[ROC_Data[4]] = millis() + (DelaySetting_for_PortD[ROC_Data[4]] * 10);
+              analogWrite( NodeMCUPinD[ROC_Data[4]], FlashHL(STATE, ROC_Data[4]));   // set pwm, arduino range is 0-1023, rocrail has 0-4095 range
               SDemand[ROC_Data[4]] = FlashHL(STATE, ROC_Data[4]); // save  what we have set for flashing 
               
-              cx = sprintf ( DebugMsg, "Setting Output %d (PWM) to %d", ROC_Data[4], SDemand[ROC_Data[4]]); 
-              if((NodePortType[ROC_Data[4]] & 129) == 128){cx = sprintf ( DebugMsg, "%s and Flashing",DebugMsg);}
-              DebugMsgSend("debug", DebugMsg);
+               
+              if((IO_Select_PortD[ROC_Data[4]] & 129) == 128){DebugSprintfMsgSend( sprintf ( DebugMsg, "Setting Output FLASHING %d  to %d", ROC_Data[4], SDemand[ROC_Data[4]]));}
+              else {DebugSprintfMsgSend( sprintf ( DebugMsg, "Setting Output %d (PWM) to %d", ROC_Data[4], SDemand[ROC_Data[4]]));}
             }
             else {                                                // this is a pure digital output
             // PrintTime(" (1251) OUTPUT D");Serial.print (ROC_Data[4]);   
-            //  if((NodePortType[ROC_Data[4]] & 129) == 128){Serial.print(" flashing ");}
+            //  if((IO_Select_PortD[ROC_Data[4]] & 129) == 128){Serial.print(" flashing ");}
               
-              cx = sprintf ( DebugMsg, "Setting Output %d (Digital) to %d", ROC_Data[4], STATE); 
-              if((NodePortType[ROC_Data[4]] & 129) == 128){cx = sprintf ( DebugMsg, "%s and Flashing",DebugMsg);}
-              DebugMsgSend("debug", DebugMsg); Serial.print (" set by rocrail  ");
+              
+              if((IO_Select_PortD[ROC_Data[4]] & 129) == 128){DebugSprintfMsgSend( sprintf ( DebugMsg, "Setting Output FLASHING %d (Digital) to %d", ROC_Data[4], STATE));}
+              else{ DebugSprintfMsgSend( sprintf ( DebugMsg, "Setting Output %d (Digital) to %d", ROC_Data[4], STATE)); }
              
               //Serial.println (STATE);// record on or off, so we can turn flashing on and off
               
-              digitalWrite(NodeMcuPortD[ROC_Data[4]], STATE); 
-              PortTimingDelay[ROC_Data[4]] = millis() + (NodePortDelay[ROC_Data[4]] * 10);
+              digitalWrite(NodeMCUPinD[ROC_Data[4]], STATE); 
+              PortTimingDelay[ROC_Data[4]] = millis() + (DelaySetting_for_PortD[ROC_Data[4]] * 10);
               SDemand[ROC_Data[4]] = servoLR(STATE, ROC_Data[4]);  // use sdemand to save state so we can flash
             } // pure digital
           } //not servo

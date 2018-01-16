@@ -1,12 +1,9 @@
+//Compiler Directives and code options are in Directives.h
 
+#include "Directives.h";
 
-#define _LOCO_SERVO_Driven_Port 1    // if using as mobile (LOCO) node.. node becomes a loco with servo on port D "1"  for motor control
-// #define _RFID 1  // if using rfid reader
-//#define _DefaultPrintOut 1 // for printing the defaults on eprom save  
-// #define _Use_Wifi_Manager // uncomment this to use a "standard" fixed SSID and Password
-#define _Audio 1 //use Earle F Philhowers's audio libraries and external dac for audio
-//#define _ForceDefaultEEPROM /
-
+//----DO NOT FORGET TO UPLOAD THE SKETCH DATA ---
+//   To check the code is working, in command prompt, set up a MQTT "debug" monitor: (e.g. For MQTT broker at 192.18.0.18) "CD C:\mosquitto  mosquitto_sub -h 192.168.0.18 -i "CMD_Prompt" -t debug -q 0" 
 
 #include <DNSServer.h>
 #include <ESP8266WebServer.h>
@@ -14,32 +11,26 @@
 #ifdef _Use_Wifi_Manager
        #include <WiFiManager.h>
 #else
-       #include "Secrets.h"
+       #include "Secrets.h";
        String wifiSSID = SSID_RR;
        String wifiPassword = PASS_RR; 
 #endif
 #include <ESP8266WiFi.h>
+
+
+//if using Really Small Message Broker you will need to use 3_1 not 3_1_1
+// so change PubSubClient. h line 19 to define '3_1' like this: 
+// #define MQTT_VERSION MQTT_VERSION_3_1  /// needed for rsmb  
+/*
 #include <WiFiClient.h>
-
-//if using Really Small Message Broker need to use 3_1 not 3_1_1
-// change PubSubClient. h line 19 to define 3_1 to this: 
-//
-//#define MQTT_VERSION MQTT_VERSION_3_1  /// needed for rsmb  
-//
 #include <PubSubClient.h>
-
-
-
-
-
-
-#include <Servo.h>
-#include <EEPROM.h>
-
-//const char* mqtt_server = "192.168.0.11";
 
 WiFiClient espClient;
 PubSubClient client(espClient);
+*/
+#include <Servo.h>
+#include <EEPROM.h>
+
 
 uint8_t wifiaddr;
 uint8_t ip0;
@@ -47,16 +38,19 @@ uint8_t ip1;
 uint8_t    subIPH;
 uint8_t    subIPL;
 
-
-//const int port = 4321;  //1235 for loconet, 4321 for Rocnet 1883 for MQTT
-
 IPAddress ipBroad;
 IPAddress mosquitto;
+int SDelay[12];
+uint32_t LoopTimer;
+uint32_t LocoCycle;
+uint16_t MyLocoLAddr ;
+uint8_t MyLocoAddr ;
+uint8_t Loco_motor_servo_demand = 0 ;
 
 
-#include "Defaults.h";
+#include "Globals.h"
 #include "Subroutines.h";
-//#include "SV.h";
+#include "MQTT.h"; //new place for mqtt stuff
 #include "RocSUBS.h";
 #include "Ports.h";
 
@@ -65,8 +59,6 @@ IPAddress mosquitto;
 #endif
 
 #ifdef _RFID
- #include <SPI.h>
- #include <MFRC522.h> //   mine is modified to give 10Mhz with ESP  #define SPI_CLOCK_DIV_4 10000000  #define myClock  10000000 // replaces    SPI_CLOCK_DIV4
  #include "RFID_Subs.h";
 #endif
 
@@ -74,10 +66,10 @@ IPAddress mosquitto;
 
 void ConnectionPrint() {
   Serial.println("");
-  Serial.println("---------------------------Connected-----------------------");
-  Serial.print (" Connected to SSID:");
+  Serial.println(F("---------------------------Connected-----------------------"));
+  Serial.print (F(" Connected to SSID:"));
   Serial.print(WiFi.SSID());
-  Serial.print("  IP:");
+  Serial.print(F("  IP:"));
   Serial.println(WiFi.localIP());
   //Serial.println("-----------------------------------------------------------");      
  
@@ -86,179 +78,96 @@ void ConnectionPrint() {
 
 
 
-void reconnect() {
-  char ClientName[80];
-  char myName[15] = "RocNetESPNode:";
-  sprintf(ClientName, "%s%i", myName, RocNodeID);
-  // Loop until we're reconnected 
-  digitalWrite (NodeMcuPortD[SignalLed] , HIGH) ; ///   turn on
-  PrintTime(" Attempting MQTT connection attempt #");
-  Serial.print(connects);
-  while (!client.connected()) {
-   
-    Serial.print(" trying:");
-    Serial.print(mosquitto);
-    Serial.println("  ");
-    // Attempt to connect
-
-    if (client.connect(ClientName)) {
-      Serial.println();
-       // cx = sprintf ( DebugMsg, "%s Connected at:%d.%d.%d.%d",ClientName,ip0,ip1,subIPH,subIPL);
-    if (mosquitto[3] != RN[14] ){   //RN[14] is the MQQT broker address, save if changed
-       RN[14]=mosquitto[3];
-       WriteEEPROM();
-       Data_Updated=true; 
-       EPROM_Write_Delay = millis()+Ten_Sec; 
-                                }
-      // can advise this node is connected now:
-       DebugSprintfMsgSend("debug", sprintf ( DebugMsg, "%s Connected at:%d.%d.%d.%d",ClientName,ip0,ip1,subIPH,subIPL));
-      
-      //FlashMessage(" ------Connected to MQQT---------",1,400,100);
-      // ... and now subscribe to topics  http://wiki.rocrail.net/doku.php?id=rocnet:rocnet-prot-en#groups
-
-      client.subscribe("rocnet/lc", 1 ); //loco
-      client.subscribe("rocnet/#", 0);   // everything
-     // client.subscribe("PiNg", 0);  // my ping...
-     /*   or do it individually.......
-
-        client.subscribe("rocnet/dc",0);
-        client.subscribe("rocnet/cs",0);
-        client.subscribe("rocnet/ps",0);
-        client.subscribe("rocnet/ot",1);
-        client.subscribe("rocnet/sr",0); // to allow reflection check of my sensor events
-      */
-     
-     // delay(100);
-
-       EPROM_Write_Delay = millis();
-     
-    } else {
-      //Serial.print(" failed, rc=");
-      //Serial.print(client.state()); 
-     // 
-     connects=connects+1;
-    if (connects>=10){  mosquitto[3] = mosquitto[3]+1;
-    if (mosquitto[3]>=50){mosquitto[3]=3;}   }   // limit mqtt broker to 3-50 to save scan time
-    delay(10);
-    client.setServer(mosquitto, 1883);   // Hard set port at 1833
-      Serial.println(" try again ...");
-      //FlashMessage(".... Failed connect to MQTT.. attempting reconnect",4,250,250);
-      // Wait   before retrying  // perhaps add flashing here so when it stops we are connected?
-      delay(100);
-      digitalWrite (NodeMcuPortD[SignalLed] , LOW) ; ///   turn OFF
-    }
-  }
-}
-
 
 void Status(){
 
-  Serial.println("-----------------------------------------------------------");
-  Serial.println("-----------------------------------------------------------");
-  Serial.println(  "                  ESPWIFIROCNET V4    "); 
-  Serial.println("-----------------------------------------------------------");
-  Serial.print(  "                    revision:");
+  Serial.println();Serial.println();
+  Serial.println(F("-----------------------------------------------------------"));
+  Serial.println(F("             ESP8266 MQTT Rocnet Node with Sound    ")); 
+  Serial.println(F("-----------------------------------------------------------"));
+  Serial.print(F(  "                    revision:"));
   Serial.print(SW_REV); Serial.println();
-  Serial.println("-----------------------------------------------------------");
-  WiFi.setOutputPower(0.0); //  0 sets transmit power to 0dbm to lower power consumption, but reduces usable range.. trying 30 for extra range
+  Serial.println(F("-----------------------------------------------------------"));
+  WiFi.setOutputPower(0.0); //  0 sets transmit power to 0dbm to lower power consumption, but reduces usable range.. try 30 for extra range
+
 #ifdef _Use_Wifi_Manager
-   WiFiManager wifiManager;  // this does not use eeprom to store ssid  !!
+   WiFiManager wifiManager;  // this  stores ssid and password invisibly  !!
   //reset settings - for testing
   //wifiManager.resetSettings();
-
   wifiManager.autoConnect("ROCNODE ESP AP");  //ap name (with no password) to be used if last ssid password not found
-#else
-  WiFi.mode(WIFI_STA);
+#else    
+
+  WiFi.mode(WIFI_STA);  //Alternate "normal" connection to wifi
   WiFi.begin(wifiSSID.c_str(), wifiPassword.c_str());
   while (WiFi.status() != WL_CONNECTED) {delay(500);Serial.print(".");}
  
 #endif
-  
-  
-  ipBroad = WiFi.localIP();
-/*
-//Alternate "normal" connection to wifi
-  Serial.print(F("Initialising. Trying to connect to:"));
-  Serial.println(SSID_RR);
-  WiFi.mode(WIFI_STA);
-  WiFi.begin(wifiSSID.c_str(), wifiPassword.c_str());
-  while (WiFi.status() != WL_CONNECTED) {delay(500);Serial.print(".");}
-  Serial.println();
-  Serial.println(WiFi.localIP());
-  ipBroad=WiFi.localIP();
-*/     
   //if you get here you have connected to the WiFi
-
+  ipBroad = WiFi.localIP();
   ip0=ipBroad[0];
   ip1=ipBroad[1];
   subIPH = ipBroad[2];
   subIPL = ipBroad[3];
   wifiaddr = ipBroad[3];
   ConnectionPrint();
-  //Serial.println(wifiaddr);
   ipBroad[3] = 255; //Set broadcast to local broadcast ip e.g. 192.168.0.255 // used in udp version of this program
  
  //   ++++++++++ MQTT setup stuff   +++++++++++++++++++++
   mosquitto[0] = ipBroad[0]; mosquitto[1] = ipBroad[1]; mosquitto[2] = ipBroad[2];
-  mosquitto[3] = RN[14];                //saved mosquitto address, where the broker is! saved as cv49, 
-  Serial.print(" Mosquitto will first try to connect to:");
+  mosquitto[3] = RN[14];                //saved mosquitto address, where the broker is! saved as RN[14], 
+  Serial.print(F(" Mosquitto will first try to connect to:"));
   Serial.println(mosquitto);
-  client.setServer(mosquitto, 1883);   // Hard set port at 1833
-  //client.setServer(mqtt_server, 1883); // old hard set...
-  client.setCallback(MQTTFetch);
+  MQTT_Setup();
 
-
-
-  //  ------------------ IF rfid -------------------------
+//  ------------------ IF rfid -------------------------
 #ifdef  _RFID
-  Serial.println("------------------------ MFRC 522 testing -----------------");
-  //   * Setup rfidstuff *************************
-  SPI.begin();        // Init SPI bus//
-  mfrc522.PCD_Init(); // Init MFRC522 card
-  mfrc522.PCD_SetRegisterBitMask(mfrc522.RFCfgReg, (0x07 << 4)); //https://github.com/miguelbalboa/rfid/issues/43 //If you set Antenna Gain to Max it will increase reading distance
-  byte readReg = mfrc522.PCD_ReadRegister(mfrc522.VersionReg);
-  if ((readReg == 0x00) || (readReg == 0xFF)) { //missing reader
-    Serial.println(" Reader absent");
-  } else {
-    Serial.println(" Reader Present ");  //would like to have spi speed here.
-    bReaderActive = true;
-  }
+ SetupRFID(); // note I have not tested this stuff recently.. 
 #endif
+
   RocNodeID = getTwoBytesFromMessageHL(RN, 1);
-  Serial.println("------------------------- RocNet Node ---------------------");
-  Serial.print(  "                   My ROCNET NODE ID:");
+
+#ifdef _ForceRocnetNodeID_to_subIPL
+  RocNodeID =subIPL;
+#endif
+  
+  Serial.println(F("------------------------- RocNet Node ---------------------"));
+  Serial.print(F("                   My ROCNET NODE ID:"));
   Serial.println(RocNodeID);
   //  ------------------ IF rfid -------------------------
 #ifdef _LOCO_SERVO_Driven_Port
   //++++++++++++++++++++Print Debug and Current setup information stuff    +++++++++++++++++++++++++++++
-  Serial.println("---------------------- LOCO Setup   -----------------------");
-  Serial.print(  "          Short 'Locomotive Address' is");
+  Serial.println(F("---------------------- LOCO Setup   -----------------------"));
+  Serial.print(F(  "          Short 'Locomotive Address' is"));
   Serial.print (CV[1]);
   Serial.println();
-  Serial.println("-------------------------- PORT Setup ---------------------");
+  Serial.println(F("-------------------------- PORT Setup ---------------------"));
   Loco_motor_servo_demand = 90;
- // pinMode(NodeMcuPortD[BACKLight], OUTPUT);   // see defaults line 90 for settings
- // pinMode(NodeMcuPortD[FRONTLight], OUTPUT);
- // pinMode(NodeMcuPortD[SignalLed], OUTPUT);  //is also ..
- digitalWrite (NodeMcuPortD[FRONTLight], 1);  //Turn off direction lights
- digitalWrite (NodeMcuPortD[BACKLight], 1); //Turn off direction lights
+ // pinMode(NodeMCUPinD[BACKLight], OUTPUT);   // see Globals line 90 for these settings
+ // pinMode(NodeMCUPinD[FRONTLight], OUTPUT);
+ // pinMode(NodeMCUPinD[SignalLed], OUTPUT);  //
+ digitalWrite (NodeMCUPinD[FRONTLight], 1);  //Turn off direction lights
+ digitalWrite (NodeMCUPinD[BACKLight], 1); //Turn off direction lights
 #endif
 
 
 }
 
-void setup() {  
-    Serial.begin(115200);
-   // ota stuff  Port defaults to 8266
+void _SetupOTA(String StuffToAdd){
+  String Name;
+  // ota stuff  Port defaults to 8266
   // ArduinoOTA.setPort(8266);
-
   // Hostname defaults to esp8266-[ChipID]
 
  #ifdef _LOCO_SERVO_Driven_Port 
-  ArduinoOTA.setHostname("WiFiRocnetLOCO");
+  Name="RN LOCO(";
   #else
- ArduinoOTA.setHostname("WiFiRocnetSTATIC");
+  Name="RN STAT(";
  #endif
+ Name=Name+StuffToAdd;
+ Name=Name+")";
+ Serial.printf("--- Setting OTA Hostname <%s> -------------\n",Name.c_str());
+  Serial.printf("------------------------------------------------------\n");
+ ArduinoOTA.setHostname(Name.c_str());
   // No authentication by default
   //ArduinoOTA.setPassword((const char *)"123");
 
@@ -281,7 +190,12 @@ void setup() {
   });
   ArduinoOTA.begin();
   //---------------------end ota stuff -------
-  
+   
+}
+
+void setup() {  
+    Serial.begin(115200);
+ // original location _SetupOTA(Nickname);
   
   POWERON = true;
   Ten_Sec = 10000;
@@ -300,7 +214,15 @@ void setup() {
     EEPROM.commit();
     delay(100);
   } 
-  
+  #ifdef _ForceDefaultEEPROM
+    SetDefaultSVs();
+    #ifdef  _Force_Loco_Addr
+      CV[1]= _Force_Loco_Addr;
+    #endif
+    WriteEEPROM();
+    EPROM_Write_Delay = millis() + 1000;
+    EEPROM.commit();
+  #endif
   
   //if
   // Get the stored / initial values...
@@ -309,23 +231,28 @@ void setup() {
 
   
   #ifdef _LOCO_SERVO_Driven_Port 
-     NodeChanneloptions[_LOCO_SERVO_Driven_Port]=0;  // force the "_LOCO_SERVO_Driven_Port Id to be NOT a servo as far as the main code is concerned so other code can do accel and decel?
+   Pi03_Setting_options[_LOCO_SERVO_Driven_Port] = 32 + 10; // KEEP this i/o as a "SERVO" output regardless, 10= delay to use for servo changes = 100ms rate ;
+     
   #endif
+#ifdef  _Force_Loco_Addr
+CV[1]= _Force_Loco_Addr;
+#endif
   MyLocoLAddr = CV[18] + ((CV[17] & 0x3F) * 256);
   MyLocoAddr = CV[1]; ///
+
   CV[8] = 0x0D; // DIY MFR code
-  CV[7] = 0x03; //ver
+  CV[7] = 0x04; //ver
 
   Status();
-
+  _SetupOTA(Nickname); // now we should have the nickname etc
  
   
 
  
 
   Motor_Speed = 0;
-  SPEED = 0;
-  OLDSPEED = 0;
+  Speed_demand = 0;
+  Last_Speed_demand = 0;
   connects = 0;
   oldconnects = 0;
 
@@ -338,15 +265,14 @@ void setup() {
   LoopTimer = millis();
   LocoCycle = millis();
   EPROM_Write_Delay = millis();
-  LenDebugMessage = 1;
-  DebugMessage[0] = 0xFF;
+ 
  
   PortSetupReport();  // sends port configuration to serial monitor
-  digitalWrite (NodeMcuPortD[SignalLed], HIGH) ;  /// turn On
+  digitalWrite (NodeMCUPinD[SignalLed], SignalON) ;  /// turn On
   // set the servos neutral here??
   // ReadInputPorts();
   for (int i = 0 ; i <= 8; i++) {
-    lastButtonState[i] = digitalRead(NodeMcuPortD[i]);
+    lastButtonState[i] = digitalRead(NodeMCUPinD[i]);
     ButtonState[i] = 0; // just set them all 0 at this stage 
     PortTimingDelay[i] = millis();
     ServoOffDelay[i] = millis() + 10000;
@@ -360,25 +286,30 @@ void setup() {
   secs=0;
   mins=0;
   hrs=0;
-  for (int i = 0 ; i <= 127; i++) {
+
+  LenDebugMessage = 1;
+  DebugMessage[0] = 0xFF;
+  for (int i = 0 ; i <= 127; i++) { // clean out debug message 
     DebugMessage[i] = 0;
   }
-  // for interrupt when we add them later versions...
+  // for interrupt when if/when we add them later versions...
   //attachInterrupt(pin,hiInterrupt,RISING);
 
 
   // Serial.println("------------------------ Starting main loop ---------------");
   FlashMessage(" ----------Entering Main Loop----------  ", 5, 150, 150);
      PrintTime("Start");
-CV[47]=131; //Defaults to showing MQQT messages,Serial messages and the D4 lightflashing at loop frequency (approximates to "On" when working!...
-   for (int i = 0 ; i <= 8; i++) {
+   CV[47]=131; //Becoming obsolete, I am not using this feature now, but may have left some in Defaults to showing MQQT messages,Serial messages and the D4 lightflashing at loop frequency (approximates to "On" when working!...
+   for (int i = 0 ; i <= 8; i++) { // set servo stuff to a default.
     SDelay[i] = 1000;
     SDemand[i] = 90;
-    NodeChannelLastUpdated[i] = millis();
+    Pi03_Setting_LastUpdated[i] = millis();
   }
 #ifdef _Audio
-  SetUpChuff();
+  SetUpChuff(millis());
 #endif
+
+
 #ifdef  _DefaultPrintOut  // give a printout of whats set in the eeprom..
     Serial.println("-----------------CURRENT EEPROM SETTNGS --------------");
     WriteEEPROM();
@@ -386,72 +317,73 @@ CV[47]=131; //Defaults to showing MQQT messages,Serial messages and the D4 light
   EEPROM.commit();
   delay(1000);
 #endif
+
+  //digitalWrite (2,HIGH); //test...Switch off D4 led on esp8266 should not affect other uses..
+ #ifdef _AudioNoDAC 
+ pinMode(2, INPUT_PULLUP);//test
+ #endif
  }  /// end of setup ///////
 
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++MAIN LOOP++++++++++++++++++++++++++++++++++++++++++++
-
-void hiInterrupt(int i) {
-
-}
-void loInterrupt(int i) {
-
-}
-
-
-
-
+extern long ChuffPeriod;
 void loop() {
+    LoopTimer = millis(); // idea is to use LoopTimer instead of millis to ensure synchronous behaviour in loop
+//test
+
+ #ifdef _AudioNoDAC 
+if (!digitalRead(2)){BeginPlay("/F5.wav");} //Play sound effect 
+ #endif
+//end test
+
+
+    // end test
 #ifdef _Audio
-  AudioLoop(1);
+  AudioLoop(LoopTimer);
   SoundEffects();
-  if (TimeToChuff()){Chuff();
-  //SteamOnStarted=millis();digitalWrite(SteamOutputPin,HIGH);
-  }
+  
+  if (TimeToChuff(LoopTimer)){ Chuff("/ch");}
+//   
 #endif
-  digitalWrite (NodeMcuPortD[SignalLed] , LOW) ; ///   turn OFF signal lamp
+
+  digitalWrite (NodeMCUPinD[SignalLed] , SignalOFF) ; ///   turn OFF signal lamp
   ArduinoOTA.handle();
   // new MQTT stuff, & check we are connected.. 
-  if (!client.connected()) {
+  if (!MQTT_Connected()) {    // was if (!client.connected()) {
     #ifdef _LOCO_SERVO_Driven_Port
     SetServo(_LOCO_SERVO_Driven_Port,90);   // mod      (90);  // STOP motor servo 
     #endif
     connects = connects + 1;
     reconnect();
   }
-  client.loop(); //gets wifi messages etc..
-  //connects=0;   /////??????
+  MQTT_Loop(); // for client.loop(); //gets wifi messages etc..
  // experiment in qos  
  /* if (oldconnects != connects) {
-    oldconnects = connects;  char DebugMsg[120]; int cx; cx = sprintf ( DebugMsg, "Reconnected, total connects now:%d", connects);
+    oldconnects = connects;  char DebugMsg[120]; int cx; DebugSprintfMsgSend( sprintf ( DebugMsg, "Reconnected, total connects now:%d", connects);
     DebugMsgSend("debug", DebugMsg);
   }
   */
   // Stop the motor if you lose connection  //
-  if (( MSGReflected == false) && (millis() >= MsgSendTime + 200)) {
+  if (( MSGReflected == false) && (LoopTimer >= MsgSendTime + 200)) {
     #ifdef  _LOCO_SERVO_Driven_Port
     SetServo(_LOCO_SERVO_Driven_Port,90);   // mod      (90);  
     #endif
     MQTTSendQ1 (SentTopic, SentMessage);
-    DebugSprintfMsgSend("debug",sprintf ( DebugMsg, "*RESENDING sensor msg--  "));
+    DebugSprintfMsgSend(sprintf ( DebugMsg, "*RESENDING sensor msg--  "));
   }  //pseudo QoS1 resend
 
-  if (millis() >= lastsec + 1000 ) {
+  if (LoopTimer >= lastsec + 1000 ) {//sign of life
     lastsec = lastsec + 1000;
     secs = secs + 1;
     Serial.print(".");
-    digitalWrite (NodeMcuPortD[SignalLed] , HIGH) ; ///   turn On
+    digitalWrite (NodeMCUPinD[SignalLed] , SignalON) ; ///   turn On
      }
-  
+  //Switch these on and to check loop timing via oscilloscope and signal led 
+  //   Phase = !Phase;
+  //   digitalWrite(NodeMCUPinD[SignalLed], Phase);
+  // 
 
 
- //Switch these on and to check timing via oscilloscope and signal led 
- 
- //   Phase = !Phase;
- //   digitalWrite(NodeMcuPortD[SignalLed], Phase);
- // 
-
-  LoopTimer = micros();
   
 
   // +++++++++++++++can reset wifi on command "update node to sw 0"
@@ -472,7 +404,7 @@ void loop() {
   // +++++++++++++++
 
   // +++++++++++++commit any changed writes to the  Eprom and change the ports if they have been altered..
-  if ((millis() >= EPROM_Write_Delay) && (Data_Updated)) {              // commit EEPROM only when needed..
+  if ((LoopTimer >= EPROM_Write_Delay) && (Data_Updated)) {              // commit EEPROM only when needed..
     Data_Updated = false;
     DebugMsgSend("debug","Commiting EEPROM");
     Serial.println("Commiting EEPROM");
@@ -484,50 +416,28 @@ void loop() {
     delay(50);
     // +++++++++  Set up other things that may have been changed...+++++++++
     RocNodeID = getTwoBytesFromMessageHL(RN, 1);
+
+#ifdef _ForceRocnetNodeID_to_subIPL
+  RocNodeID =subIPL;
+#endif
     MyLocoLAddr = CV[18] + ((CV[17] & 0x3F) * 256);
     MyLocoAddr = CV[1];
                                                         }
   // +++++++++++END commit to EPROM
-
+//periodic updates and checks
 #ifdef _RFID
   checkRFID();
 #endif
-
-//periodic updates and checks
-
 #ifdef  _LOCO_SERVO_Driven_Port
-  //CV[1] = RocNodeID;  force Loco addr = rocnode addr
-  //CV[18] = RocNodeID; // set loco addr= node in case it was altered...l
-   ServoOffDelay[_LOCO_SERVO_Driven_Port] = millis() + 10000;  // reset the servooff delay for servo 0, which is the motor...
-  if (POWERON == false) { // Track power off, stop the motor, zero the motor servo immediately
-    SPEED=0;
-    SDemand[_LOCO_SERVO_Driven_Port]=90;
-    SetServo(_LOCO_SERVO_Driven_Port,90 );   // mod      (90);
-  }
-  else {                             // force all the bits to make servo '_LOCO_SERVO_Driven_Port' controlled by CV's
-     SDemand[_LOCO_SERVO_Driven_Port] = Loco_motor_servo_demand;
-     NodeChannelonsteps[_LOCO_SERVO_Driven_Port] = CV[3];
-     NodeChanneloffsteps[_LOCO_SERVO_Driven_Port] = CV[4]; // set acc and decc !!
-     NodeChanneloffposH[_LOCO_SERVO_Driven_Port]=1;
-     NodeChanneloffposL[_LOCO_SERVO_Driven_Port]=145;
-     NodeChannelonposH[_LOCO_SERVO_Driven_Port]=1;
-     NodeChannelonposL[_LOCO_SERVO_Driven_Port]=145;
-     NodeChanneloptions[_LOCO_SERVO_Driven_Port] = 32 + 10; // KEEP this i/o as a "SERVO" output regardless, 10= delay to use for servo changes = 100ms rate ;
-    //NodeChanneloptions[_LOCO_SERVO_Driven_Port]=0;  // force the "_LOCO_SERVO_Driven_Port Id to be NOT a servo as far as the main code is concerned
-  }
+  DoLocoMotor();
 #endif
-
-
   SERVOS();
   FLASHING();
-
   ReadInputPorts();
   DETACH();     // check if servos need detaching...
   DoRocNet();   // do any messages ! includes... if (Message_Length >=1)
 
   //delay(5);   // slow this down for tests
-  
-  
 } //void loop
 
 
