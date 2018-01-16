@@ -10,7 +10,7 @@ As a loco decoder it gives full control over a loco's motor and front and rear l
 The interface is designed to be used as a Node in a RocRail http://wiki.rocrail.net/doku.php controlled model railway and uses the RocNet (http://wiki.rocrail.net/doku.php?id=rocnet:rocnet-prot-en) protocol with an MQTT interface using the PubSubClient https://github.com/knolleary/pubsubclient. 
 
 The code should compile and set up as a loco with address 3, Rocnode will be dependant on your router. Look at the serial terminal to see how the code is setting istself up!.
-The MQTT stuff will search for a MQTT broker from 192.168.0.3 to 192.168.0.50. The code is not set up for passwords, but this could be added. This range can be changed in the .ino, (line 141) I use Mosquitto on the same PC that runs Rocrail (note that rorail will need the MQTT address explicitly in its controller setup).  
+The MQTT stuff will search for a MQTT broker from 192.168.0.3 to 192.168.0.50. The code is not set up for passwords, but this could be added. This range can be changed in the .ino, (line 141) I use Mosquitto on the same PC that runs Rocrail (note that RocRail will need the MQTT address explicitly in its controller setup).  
 
 The MQTT in this program includes a "debug" message that can be subscribed to to give an indication of what s going on. I use it mainly to moonitor/check that nodes are still conneced. 
 
