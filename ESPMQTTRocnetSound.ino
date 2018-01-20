@@ -305,9 +305,6 @@ CV[1]= _Force_Loco_Addr;
     SDemand[i] = 90;
     Pi03_Setting_LastUpdated[i] = millis();
   }
-#ifdef _Audio
-  SetUpChuff(millis());
-#endif
 
 
 #ifdef  _DefaultPrintOut  // give a printout of whats set in the eeprom..
@@ -322,6 +319,11 @@ CV[1]= _Force_Loco_Addr;
  #ifdef _AudioNoDAC 
  pinMode(2, INPUT_PULLUP);//test
  #endif
+
+ #ifdef _Audio
+  SetUpChuff(millis());
+#endif
+
  }  /// end of setup ///////
 
 
@@ -329,20 +331,12 @@ CV[1]= _Force_Loco_Addr;
 extern long ChuffPeriod;
 void loop() {
     LoopTimer = millis(); // idea is to use LoopTimer instead of millis to ensure synchronous behaviour in loop
-//test
 
- #ifdef _AudioNoDAC 
-if (!digitalRead(2)){BeginPlay("/F5.wav");} //Play sound effect 
- #endif
-//end test
-
-
-    // end test
 #ifdef _Audio
   AudioLoop(LoopTimer);
   SoundEffects();
   
-  if (TimeToChuff(LoopTimer)){ Chuff("/ch");}
+  if (TimeToChuff(LoopTimer)){ Chuff("/Fenchurch");} // select chuff sound samples "Fenchurch" is my best sounding set..
 //   
 #endif
 

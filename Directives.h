@@ -15,7 +15,7 @@
 // #define _Use_Wifi_Manager // uncomment this to use a "standard" fixed SSID and Password
 
 #define _AudioDAC 1 // to use Earle F Philhowers's audio libraries and I2C dac for audio 
-//#define _AudioNoDAC 1 //  to use Earle F Philhowers's audio libraries and his clever single transistor pseudo dac for audio 
+//#define _AudioNoDAC 1 //  to use Earle F Philhowers's audio libraries and his clever single transistor 1 bit oversampling dac for audio 
 
 // I could probably be cleverer with this set!!
 #ifdef _AudioNoDAC
@@ -29,8 +29,8 @@
 
 //----SET THESE WHEN INITIALLY SETTING UP THE CODE to set the eeprom to reasonably sensible defaults.
 // Then comment them out and re-program so that the loc addr etc can be set via rocrail
-#define _ForceRocnetNodeID_to_subIPL // stops the ability of rocnet to change the node number, but prevents the possibility of two nodes having same node number
+//#define _ForceRocnetNodeID_to_subIPL // stops the ability of rocnet to change the node number, but prevents the possibility of two nodes having same node number
 //#define _ForceDefaultEEPROM //
-//#define _Force_Loco_Addr 6 
+//#define _Force_Loco_Addr 8 
 
 //---------------------------------------------------------------end of compiler #defines--------------

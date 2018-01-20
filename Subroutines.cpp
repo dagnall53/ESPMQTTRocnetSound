@@ -161,8 +161,10 @@ void SetPortPinIndex() {
   NodeMCUPinD[6] = D6;
   NodeMCUPinD[7] = D7;
   NodeMCUPinD[8] = D8;
-  NodeMCUPinD[9] = D9;
-  NodeMCUPinD[10] = D10;
+//    static const uint8_t D9   = 3;
+//  static const uint8_t D10  = 1;
+ //no D9 wemos NodeMCUPinD[9] = D9;
+ //no D10 wemos  NodeMCUPinD[10] = D10;
 
 }
 

@@ -53,34 +53,32 @@ void SetUpChuff(uint32_t TimeNow){
  #ifdef _AudioNoDAC
   out = new AudioOutputI2SNoDAC();
 #endif
-
+  delay(200);
   SteamPulseDuration=5;  //5 for use as strobe
   SteamOnStarted=TimeNow;
   
   wav = new AudioGeneratorWAV();
   WavDoneMsgSent=false;
   ChuffCycle=0;
-  LastChuff=TimeNow+1000;
+  LastChuff=TimeNow+4000;
   Serial.printf("-- Sound System Initiating -- \n");
+ 
+  PlayingSoundEffect=false;   
+  ChuffPlaying=false;
+  ChuffPeriod=3000;
+ // delay(2000); // allow time for setups..
+  LastFilePlayed="--";
+  SoundEffect_Request[1]=0;
+  SoundEffect_Request[2]=0;
+  SoundEffect_Request[3]=0;
   BeginPlay("/initiated.wav");// this wav file will play before anything else.
   //BeginPlay("/Class 4 Guard's Whistle.wav");
-  PlayingSoundEffect=true;   
-  ChuffPlaying=false;
-  ChuffPeriod=1000;
-
-  delay(1); // allow time for setups..
+  
 }
-/*
-Serial.println();
-Serial.print("Begin play <");
-Serial.print(Filename.substring(0,3));
-Serial.print ("> is equal to <");
-Serial.print (ChuffType.substring(0,3));
-Serial.println(">");
-*/
 
 void BeginPlay(const char *wavfilename){
   String Filename;
+  float Gain;
   if(!PlayingSoundEffect){
   Filename=wavfilename;
   WavDoneMsgSent=false;
@@ -103,14 +101,22 @@ void BeginPlay(const char *wavfilename){
        // Serial.println("");
        // Serial.printf("*Audio  last file was:");
        // Serial.print(LastFilePlayed);
-        Serial.printf(" Now Playing wav...");
-        Serial.println(wavfilename);
+       
         #endif
             }      
             if (LastFilePlayed!="--"){  delete file;    }//housekeeping.. delete last file  
-     LastFilePlayed=wavfilename;      
+            LastFilePlayed=wavfilename;     
+     Serial.printf(" Now Playing <");
+     Serial.print(wavfilename);   
+     Gain=SoundEffect_Request[2]+1; //format gain correctly
+      Gain=(Gain/64);
+      Serial.print("> Gain");
+      Serial.println(Gain);
+      Serial.println(); 
      file = new AudioFileSourceSPIFFS(wavfilename);
      wav->begin(file, out);
+     out->SetGain(Gain); //or use gain to use F9 10 11 and 12 to set volume
+     delay(1);
   }}
 
 
