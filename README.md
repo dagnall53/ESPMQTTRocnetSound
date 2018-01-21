@@ -88,7 +88,6 @@ CV[111]=127; // volume for Brake Squeal
 
 
 ## "LOCO" interface
-====================
  The code is mainly for use as a "LOCO" or mobile node. .
  The "#define _LOCO_SERVO_Driven_Port 1" defines that port D1 will be a servo controlled motor driver for the locomotive. 
  Ports D3 and D2 default as Front and Back Lights.
@@ -113,7 +112,14 @@ CV[111]=127; // volume for Brake Squeal
     
 The Chuff period computation uses CV5 to re-extract the intended speed to generate a "ChuffPeriod" that is used to trigger chuffs. ChuffPeriod is set in 'Ports.h" line 375 onwards. . Line 387 has SetChuffPeriod(4000/MotorSpeed); By changing the constant "4000" in that location, the chuff to wheel rotation rate can be altered to get best effect for your loco. With the gearing and servo control I use this is not that accurate,and using a wheel mounted sensor (not yet implemented) may be necessary for preciscion control.
     
-   
+## "Stationary" interface   
+IF not set as Loco, the code allows full rocrail control over D1 to D8 ports. The default settings give a set of defaults derived from a saved eprom set for a station.
+
+This set sets 1-4 as pwm outputs (for Lights) ( BUT be careful of the strange logic in the L293 motor driver board if you use it) I personally only 2 lines to try and avoid confusion. Without the L293 driver, the ports work more intuitively. (The L293 is not simply four inverters!!)
+
+D5 AND D6 are sensor inputs for using with hall switches
+
+D7 and D8 are servo outputs for points.
 
  
  
