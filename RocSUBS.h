@@ -561,37 +561,37 @@ Pi03_Setting_LastUpdated[i]=0;
  RN[99]=0;
  CV[99]=0;
  RN[100]=0;
- CV[100]=0;
+ CV[100]=127;
  RN[101]=1;
- CV[101]=0;
+ CV[101]=127;
  RN[102]=0;
- CV[102]=0;
+ CV[102]=127;
  RN[103]=0;
- CV[103]=0;
+ CV[103]=127;
  RN[104]=0;
- CV[104]=0;
+ CV[104]=127;
  RN[105]=0;
- CV[105]=0;
+ CV[105]=127;
  RN[106]=0;
- CV[106]=0;
+ CV[106]=127;
  RN[107]=1;
- CV[107]=0;
+ CV[107]=127;
  RN[108]=0;
- CV[108]=0;
+ CV[108]=127;
  RN[109]=0;
- CV[109]=0;
+ CV[109]=127;
  RN[110]=0;
- CV[110]=0;
+ CV[110]=127;
  RN[111]=145;
- CV[111]=0;
+ CV[111]=127;
  RN[112]=0;
- CV[112]=0;
+ CV[112]=127;
  RN[113]=0;
- CV[113]=0;
+ CV[113]=127;
  RN[114]=0;
- CV[114]=0;
+ CV[114]=127;
  RN[115]=160;
- CV[115]=0;
+ CV[115]=127;
  RN[116]=160;
  CV[116]=0;
  RN[117]=4;
@@ -1244,7 +1244,7 @@ void ROC_CS() { //group 1
 extern boolean ButtonState[12] ;
 extern int lastButtonState[12];
 extern void  SetSoundEffect(uint8_t Data1,uint8_t Data2,uint8_t Data3);
-extern void BeginPlay(const char *wavfilename);
+extern void BeginPlay(const char *wavfilename, uint8_t Volume);
 void ROC_MOBILE() { // group 2
   switch (ROC_code) {
     case 0:  {}    // NOP
@@ -1273,7 +1273,7 @@ void ROC_MOBILE() { // group 2
 
 // do brakes here
           if ((LastSetSpeed>= 5) && (Speed_demand ==0)){
-                  BeginPlay("/brakes.wav"); //brakes.wav should be a brake squeal sample
+                  BeginPlay("/brakes.wav",CV[111]); //brakes.wav should be a brake squeal sample
           }
 
           

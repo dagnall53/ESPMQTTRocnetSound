@@ -9,7 +9,7 @@
 void SetChuffPeriod(long Setting);
 void SetSoundEffect(uint8_t Data1,uint8_t Data2,uint8_t Data3);
 void SetUpChuff(uint32_t TimeNow);
-void BeginPlay(const char *wavfilename);
+void BeginPlay(const char *wavfilename, uint8_t Volume);
 bool TimeToChuff(uint32_t TimeNow);
 void Chuff (String ChuffChoice);
 void AudioLoop(int32_t TimeNow);
