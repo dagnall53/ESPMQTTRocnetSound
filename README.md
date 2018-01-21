@@ -9,12 +9,14 @@ As a loco decoder it gives full control over a loco's motor and front and rear l
 
 The interface is designed to be used as a Node in a RocRail http://wiki.rocrail.net/doku.php controlled model railway and uses the RocNet (http://wiki.rocrail.net/doku.php?id=rocnet:rocnet-prot-en) protocol with an MQTT interface using the PubSubClient https://github.com/knolleary/pubsubclient. 
 
-The code should compile and set up as a loco with address 3, Rocnode will be dependant on your router. Look at the serial terminal to see how the code is setting istself up!.
-The MQTT stuff will search for a MQTT broker from 192.168.0.3 to 192.168.0.50. The code is not set up for passwords, but this could be added. This range can be changed in the .ino, (line 141) I use Mosquitto on the same PC that runs Rocrail (note that RocRail will need the MQTT address explicitly in its controller setup).  
+The code should compile and set up as a loco with an address initially set by "#define _Force_Loco_Addr 8 ", and an Rocnode that will be dependant on your router (if you use #define _ForceRocnetNodeID_to_subIPL). Look at the serial terminal to see how the code is setting istself up!.
+The MQTT stuff will search for a MQTT broker from 192.168.0.3 to 192.168.0.50. The code is not set up for passwords, but this could be added. This search range can be changed in MQTT:reconnect (MQTT.cpp line 269).
+
+I use Mosquitto on the same PC that runs Rocrail (note that RocRail will need the MQTT address explicitly in its controller setup).  
 
 The MQTT in this program includes a "debug" message that can be subscribed to to give an indication of what s going on. I use it mainly to moonitor/check that nodes are still conneced. 
 
-The code includes ArduinoOTA updating. I have compiled, and uploaded over OTA, the code on both ESP8266 4M options (3M SPIFF and 1M SPIFF). Obviously with the 3M option, you can have longer or more sound effects. The "data" set of sound clips in the git should be able to be compiled in the 1M SPIFFS, <just>. 
+The code includes ArduinoOTA updating. I have compiled, and uploaded over OTA, the code on both ESP8266 4M options (3M SPIFF and 1M SPIFF). Obviously with the 3M option, you can have longer or more sound effects. The "data" set of sound clips in the Git needs 3M SPIFFS. 
 
 ## Disclaimers and Thanks
 All this code is released under the GPL, and all of it is to be used at your own risk.  
@@ -51,7 +53,7 @@ The Chuff sequence uses four samples that are truncated and sequenced if the chu
 
 ## Hardware
 The hardware expects to use a 12C DAC such as a Adafruit's I2SDAC or a Beyond9032 DAC connected "DIN" to D9/RX  "LRC" to D4 and "CLK" to D8 (D numbers are NodeMCU pin references). (setsed with Adafruit board, but not te Beyond board)
-As default, the Front light is D3, Back light is D2, and a "Signal Led" is on D5 to provide indications that messages are being received etc..
+As the LOCO default, the Front light is D3, Back light is D2, and a "Signal Led" is on D5 to provide indications that messages are being received etc..
 The Loco Servo motor controller is on D1. 
 This leaves a few ports of later upgrades such as servo controlled couplers.
 Port D4 IS available on the NODAC version if you need it (see https://github.com/earlephilhower/ESP8266Audio/issues/32 )
@@ -97,19 +99,19 @@ CV[111]=127; // volume for Brake Squeal
    MAKE SURE that you have the CV set in the RocRAil interface!. ALL locos shoud try to respond if CV[1]=0 (and long address is 0)
    - The "Default" for the eeprom is set as Address=3. 
    Once you are recieving data in the programming interface, you should be able to read, set and change change CV.s
-   Setting CV[13] = 13 will force a reset to default values for the whole ESP. (should reset loco to Address 3)
+   Setting CV[13] = 13 will force a reset to default values for the whole ESP. (should reset loco to Address 3, providing this is set in the defaults.)
   
-  The RocNode ID, and node "nickname" should be set via the normal Rocrail "Programming/Rocnet" tab.
+  The RocNode ID, and node "nickname" can be set via the normal Rocrail "Programming/Rocnet" tab, once the #defaults "_Force" are commented out
     
  The motor drive has been simplified
     Loco_motor_servo_demand= 90+(CV[2]+ (SPEED*CV[5])/100);
     CV[5](100) is the servo setting for "100%" forward speed
        CV[2](10) is the servo setting to just start the motor forward
-         I have removed the CV[48] bias to help match forwards and backwards.
+         I have removed the CV[48] bias of previous versions to help match forwards and backwards.
       Forwards:  "servodemand= 90+(CV[2]+ (SPEED*CV[5])/100);"
-      Backwards "servodemand= 90-(CV[2]+ (SPEED*CV[5])/100);
+      Backwards "servodemand= 90-(CV[6]+ (SPEED*CV[5])/100);  NOTE CV6 for backwards
     
-The Chuff period computation uses CV2, and 5 to re-extract the intended speed to generate a "ChuffPeriod" that is used to trigger chuffs. ChuffPeriod is set in 'SetServo@ in the Subroutines.h". By changing the constant "2590" in that location, the chuff to wheel rotation rate can be altered to get best effect for your loco. 
+The Chuff period computation uses CV5 to re-extract the intended speed to generate a "ChuffPeriod" that is used to trigger chuffs. ChuffPeriod is set in 'Ports.h" line 375 onwards. . Line 387 has SetChuffPeriod(4000/MotorSpeed); By changing the constant "4000" in that location, the chuff to wheel rotation rate can be altered to get best effect for your loco. With the gearing and servo control I use this is not that accurate,and using a wheel mounted sensor (not yet implemented) may be necessary for preciscion control.
     
    
 
