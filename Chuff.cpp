@@ -73,7 +73,7 @@ void SetUpChuff(uint32_t TimeNow){
   SoundEffect_Request[1]=0;
   SoundEffect_Request[2]=0;
   SoundEffect_Request[3]=0;
-//Temporary override sound volumes 
+/*//Temporary override sound volumes 
 CV[100]=127; // Overall volume control
 CV[101]=127; //volume for F1 
 CV[102]=127;
@@ -83,11 +83,11 @@ CV[105]=127;
 CV[106]=127;
 CV[107]=127;
 CV[108]=127; // Volume for F8
-CV[109]=127;
+
 CV[110]=127; // volume for chuffs
 CV[111]=127; // volume for Brake Squeal
 //
-  
+*/  
   BeginPlay("/initiated.wav",127);// this wav file will play before anything else.
   //BeginPlay("/Class 4 Guard's Whistle.wav");
   
