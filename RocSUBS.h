@@ -1262,7 +1262,7 @@ void ROC_MOBILE() { // group 2
         //      Serial.print(ROC_recipient);
         Message_Decoded = true; // we understand these even if they are not for us
 #ifdef _LOCO_SERVO_Driven_Port
-        if (ROC_recipient == CV[1]) { //for me, do it!
+        if (ROC_recipient == CV[1]) { //data for me, do it!
           Serial.print (" Set Speed ");
           Serial.print( ROC_Data[1]);
           LastSetSpeed = Speed_demand;
@@ -1274,20 +1274,20 @@ void ROC_MOBILE() { // group 2
 // do brakes here
           if ((LastSetSpeed>= 5) && (Speed_demand ==0)){
                   BeginPlay("/brakes.wav",CV[111]); //brakes.wav should be a brake squeal sample
-          }
+                                                       }
 
           
-          if  (!(bitRead(DIRF, 4))) {
+          if  (!(bitRead(DIRF, 4))) {  //lights off
             digitalWrite (NodeMCUPinD[FRONTLight], 1);
             digitalWrite (NodeMCUPinD[BACKLight], 1);
-          }
+                                    }
 
           //---------Direction Lights and Servo settings---------------
-          if (bitRead(CV[29], 0)) {         // need to account for the  cv29 bit 0....
+   if (bitRead(CV[29], 0)) {         // need to account for the  cv29 bit 0....
             if (bitRead(DIRF, 5 )) {
-              servodemand = 90 - CV[6] - ((Speed_demand * CV[5])/240) ; // revoffset? CV[6] is "V(mid)", but used as reverse offset
+              servodemand = 90 - CV[6] - ((Speed_demand * CV[5])/240) ; // revoffset? CV[6] is "V(mid)", but used now as reverse v min
               //DebugSprintfMsgSend( sprintf ( DebugMsg, "test A Speed:%d  Servo:%d", ROC_Data[1], servodemand));
-              if  (bitRead(DIRF, 4)) {
+              if  (bitRead(DIRF, 4)) { //lights on
                 digitalWrite (NodeMCUPinD[FRONTLight], 0);
                 digitalWrite (NodeMCUPinD[BACKLight], 1);
               }
@@ -1295,14 +1295,14 @@ void ROC_MOBILE() { // group 2
             else {
               servodemand =  90 + CV[2] + ((Speed_demand * CV[5])/240) ;
               //DebugSprintfMsgSend( sprintf ( DebugMsg, "test B Speed:%d  Servo:%d", ROC_Data[1], servodemand));
-              if  (bitRead(DIRF, 4)) {
+              if  (bitRead(DIRF, 4)) {//lights on
                 digitalWrite (NodeMCUPinD[BACKLight], 0);
                 digitalWrite (NodeMCUPinD[FRONTLight], 1);
               }
             }
-          }
-          else {   // cv29 =1
-            if (!bitRead(DIRF, 5 )) {
+          } //cv29 bit 0 = 1
+          else {   // cv29 bit 0  =0
+            if (bitRead(DIRF, 5 )) {
               servodemand =  90 + CV[2] + ((Speed_demand * CV[5])/240) ;
              // DebugSprintfMsgSend( sprintf ( DebugMsg, "test C  CV[2]:%d  Speed:%d  Servo:%d", CV[2], Speed_demand, servodemand));
               
