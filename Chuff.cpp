@@ -1,3 +1,5 @@
+#ifdef _Audio 
+
 #include "Chuff.h"
 
   #include "AudioFileSourceSPIFFS.h"
@@ -88,8 +90,7 @@ CV[110]=127; // volume for chuffs
 CV[111]=127; // volume for Brake Squeal
 //
 */  
-  BeginPlay("/initiated.wav",127);// this wav file will play before anything else.
-  //BeginPlay("/Class 4 Guard's Whistle.wav");
+  BeginPlay("/initiated.wav",64);// this wav file will play before anything else.
   
 }
 
@@ -232,4 +233,4 @@ void AudioLoop(int32_t TimeNow){
  
 
  
-
+#endif

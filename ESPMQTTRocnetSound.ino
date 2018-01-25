@@ -316,9 +316,9 @@ CV[1]= _Force_Loco_Addr;
 #endif
 
   //digitalWrite (2,HIGH); //test...Switch off D4 led on esp8266 should not affect other uses..
- #ifdef _AudioNoDAC 
- pinMode(2, INPUT_PULLUP);//test
- #endif
+// #ifdef _AudioNoDAC 
+// pinMode(2, INPUT_PULLUP);//test
+// #endif
 
  #ifdef _Audio
   SetUpChuff(millis());

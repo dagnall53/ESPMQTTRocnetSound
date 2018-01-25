@@ -58,7 +58,8 @@ void SERVOS(void);
 void DoLocoMotor(void){
   
   //CV[1] = RocNodeID;  force Loco addr = rocnode addr
-  //CV[18] = RocNodeID; // set loco addr= node in case it was altered...l
+  //CV[18] = RocNodeID; // set loco addr= node in case it was altered...
+#ifdef _LOCO_SERVO_Driven_Port
    ServoOffDelay[_LOCO_SERVO_Driven_Port] = LoopTimer + 10000;  // reset the servooff delay for servo 0, which is the motor...
   if (POWERON == false) { // Track power off, stop the motor, zero the motor servo immediately
     Speed_demand=0;
@@ -76,6 +77,7 @@ void DoLocoMotor(void){
      Pi03_Setting_options[_LOCO_SERVO_Driven_Port] = 32 + 10; // KEEP this i/o as a "SERVO" output regardless, 10= delay to use for servo changes = 100ms rate ;
     //Pi03_Setting_options[_LOCO_SERVO_Driven_Port]=0;  // force the "_LOCO_SERVO_Driven_Port Id to be NOT a servo as far as the main code is concerned
   }
+#endif
 }
 
 void READ_PORT( int i) {
@@ -135,18 +137,21 @@ void PortMode(int i) {
   Serial.print (" Port :");
   Serial.print (i);
   switch (i) {
+#ifdef _LOCO_SERVO_Driven_Port
    case _LOCO_SERVO_Driven_Port:
                       Serial.print(F(" used as LOCO MOTOR "));
                       IO_Select_PortD[i] = 0;
                       Pi03_Setting_options[i] = 42;
                       hardset =true;
                       break;
+#endif
   case SignalLed:  
                       Serial.print(F(" is SignalLED  Output "));
                       pinMode(NodeMCUPinD[SignalLed], OUTPUT);
                       IO_Select_PortD[i] = IO_Select_PortD[i] & 0xFE;  
                       hardset =true;
                       break;
+#ifdef _LOCO_SERVO_Driven_Port  
   case FRONTLight:
                       Serial.print (F(" is FRONTLight  Output "));
                       pinMode(NodeMCUPinD[FRONTLight], OUTPUT);
@@ -159,6 +164,7 @@ void PortMode(int i) {
                       IO_Select_PortD[i] = IO_Select_PortD[i] & 0xFE; 
                       hardset =true;
                       break;
+#endif                      
  #ifdef SteamOutputPin
   case SteamOutputPin:
                      Serial.print (F(" is SteamPulse  Output "));
