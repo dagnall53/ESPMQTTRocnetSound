@@ -98,10 +98,15 @@ void Status(){
 #else    
 
   WiFi.mode(WIFI_STA);  //Alternate "normal" connection to wifi
+  WiFi.setOutputPower(20.5);
   WiFi.begin(wifiSSID.c_str(), wifiPassword.c_str());
-  while (WiFi.status() != WL_CONNECTED) {delay(500);Serial.print(".");}
+  
+  while (WiFi.status() != WL_CONNECTED) {delay(500);Serial.print(F("Trying to connect to {"));
+  Serial.print(wifiSSID.c_str());
+  Serial.println(F("} "));Serial.print(".");}
  
 #endif
+
   //if you get here you have connected to the WiFi
   ipBroad = WiFi.localIP();
   ip0=ipBroad[0];

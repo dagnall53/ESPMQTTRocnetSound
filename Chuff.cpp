@@ -1,4 +1,4 @@
-#ifdef _Audio 
+
 
 #include "Chuff.h"
 
@@ -131,8 +131,10 @@ void BeginPlay(const char *wavfilename, uint8_t Volume){
       Serial.println(Gain);
       Serial.println(); 
      file = new AudioFileSourceSPIFFS(wavfilename);
+     #ifdef _Audio  // stops some compiler issues if no audio needed
      wav->begin(file, out);
      out->SetGain(Gain); 
+     #endif
      delay(1);
   }}
 
@@ -162,6 +164,7 @@ void Chuff (String ChuffChoice){
                           }// truncate play
    LastChuff=millis();
    //steamoutputpin stuff  here for one puff per chuff 
+   #ifdef _LOCO_SERVO_Driven_Port
    SteamOnStarted=millis(); digitalWrite (NodeMCUPinD[SteamOutputPin],HIGH);
    switch (ChuffCycle){ 
                               case 0:Chuff=ChuffType+"1.wav";BeginPlay(Chuff.c_str(),CV[110]);ChuffCycle=1;
@@ -171,7 +174,9 @@ void Chuff (String ChuffChoice){
                               case 1:Chuff=ChuffType+"2.wav";BeginPlay(Chuff.c_str(),CV[110]);ChuffCycle=2;break;
                               case 2:Chuff=ChuffType+"3.wav";BeginPlay(Chuff.c_str(),CV[110]);ChuffCycle=3;break;
                               case 3:Chuff=ChuffType+"4.wav";BeginPlay(Chuff.c_str(),CV[110]);ChuffCycle=0;break;
-}}
+}
+#endif
+}
 }
 void AudioLoop(int32_t TimeNow){
  #ifdef SteamOutputPin
@@ -233,4 +238,4 @@ void AudioLoop(int32_t TimeNow){
  
 
  
-#endif
+

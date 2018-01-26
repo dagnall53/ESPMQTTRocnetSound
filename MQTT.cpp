@@ -267,7 +267,7 @@ void reconnect() {
      connects=connects+1;
     if (connects>=5){  mosquitto[3] = mosquitto[3]+1;
     if (mosquitto[3]>=50){mosquitto[3]=3;}   }   // limit mqtt broker to 3-50 to save scan time
-    delay(10);
+    delay(100);
     client.setServer(mosquitto, 1883);   // Hard set port at 1833
       Serial.println(" try again ...");
       //FlashMessage(".... Failed connect to MQTT.. attempting reconnect",4,250,250);

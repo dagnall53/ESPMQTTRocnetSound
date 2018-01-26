@@ -375,6 +375,7 @@ void SetServo( int i, uint16_t value) { // uses 0-180
     ServoLastPos[i]=value;
 
 #ifdef _Audio      // set chuff period here?
+ #ifdef _LOCO_SERVO_Driven_Port
         if ((i==_LOCO_SERVO_Driven_Port)) {
             // if changes to motor speed, change chuff period:
 
@@ -397,8 +398,8 @@ void SetServo( int i, uint16_t value) { // uses 0-180
                                                                     // so with 4 chuffs per rev we get ~250ms "chuffperiod" at 10MPH
                         
           }  
-        
-#endif
+  #endif // is loco      
+#endif //is audio
     switch (i) {
     
       case 1: {
