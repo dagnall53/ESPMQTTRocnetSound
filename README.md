@@ -121,6 +121,9 @@ D5 AND D6 are sensor inputs for using with hall switches
 
 D7 and D8 are servo outputs for points.
 
+## MORE:
+There are some further detailed notes on the use of the hardware and using the code with Rocrail in the two PDFs. 
+
  
  
    
