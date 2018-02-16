@@ -1,3 +1,6 @@
+# ESPMQTTRocnetSoundPWM
+Has added PWM motor control using L293D IC directly driven by ports selected in the directives. (Note this is not necessarily compatible with the NodeMU motoor shield, as this has some enabling logic I have not tested)
+
 # ESPMQTTRocnetSound
 This is a significant upgrade to my ESPWIFIRocnet project, adding .wav based sound effects for the Loco.
 
