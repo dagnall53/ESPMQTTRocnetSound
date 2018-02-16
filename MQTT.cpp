@@ -7,6 +7,10 @@
 #include <WiFiClient.h>
 WiFiClient espClient;
 PubSubClient client(espClient);
+//if using Really Small Message Broker and not Mosquitto, you will need to use V 3_1 not 3_1_1
+// so change PubSubClient. h line 19 to define '3_1' like this: 
+// #define MQTT_VERSION MQTT_VERSION_3_1  /// needed for rsmb  
+
 
 extern IPAddress mosquitto;
 

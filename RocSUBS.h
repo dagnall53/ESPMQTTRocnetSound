@@ -9,7 +9,7 @@ boolean  PingReflected;
 
 
 uint8_t Value_for_PortD[NumberOfPorts + 1]; // ignore [0] so we can have 1...8
-uint8_t IO_Select_PortD[NumberOfPorts + 1];
+uint8_t Pi02_Port_Settings_D[NumberOfPorts + 1];
 uint8_t DelaySetting_for_PortD[NumberOfPorts + 1];
 uint8_t Configuration_for_PortD[NumberOfPorts + 1];
 uint8_t EventMarker_for_PortD[NumberOfPorts + 1];
@@ -29,7 +29,7 @@ uint32_t Pi03_Setting_LastUpdated[NumberOfPorts + 1];
 extern void SERVOS(void);
 extern uint16_t servoLR(int state, int port);
 extern int FlashHL(int state, int port);
-uint8_t Speed_demand = 0 ;
+uint8_t Speed_demand ;
 uint8_t Last_Speed_demand;
 
 #define Recipient_Addr  1   //  use with SetWordIn_msg_loc_value(sendMessage,Recipient_Addr,data  , or get sender or recipient addr  
@@ -62,7 +62,7 @@ void SetDefaultSVs(){
     Value_for_PortD[i]=1;
 
     
-IO_Select_PortD[i]=0; //0= out 1= in
+Pi02_Port_Settings_D[i]=0; //0= out 1= in
 DelaySetting_for_PortD[i]=0;//10ms units, max. 255 * 10.
 Configuration_for_PortD[i]=1;
 EventMarker_for_PortD[i]=0;
@@ -88,7 +88,7 @@ Pi03_Setting_LastUpdated[i]=0;
  // 7 and 8 are servo outputs for points.
  
  Value_for_PortD[1]=0;
- IO_Select_PortD[1]=0;
+ Pi02_Port_Settings_D[1]=0;
  DelaySetting_for_PortD[1]=0;
  Configuration_for_PortD[1]=1;
  EventMarker_for_PortD[1]=0;
@@ -104,7 +104,7 @@ Pi03_Setting_LastUpdated[i]=0;
  Pi03_Setting_options[1]=128;
  Pi03_Setting_LastUpdated[1]=6184;
  Value_for_PortD[2]=0;
- IO_Select_PortD[2]=0;
+ Pi02_Port_Settings_D[2]=0;
  DelaySetting_for_PortD[2]=0;
  Configuration_for_PortD[2]=1;
  EventMarker_for_PortD[2]=0;
@@ -120,7 +120,7 @@ Pi03_Setting_LastUpdated[i]=0;
  Pi03_Setting_options[2]=128;
  Pi03_Setting_LastUpdated[2]=6184;
  Value_for_PortD[3]=0;
- IO_Select_PortD[3]=0;
+ Pi02_Port_Settings_D[3]=0;
  DelaySetting_for_PortD[3]=0;
  Configuration_for_PortD[3]=1;
  EventMarker_for_PortD[3]=0;
@@ -136,7 +136,7 @@ Pi03_Setting_LastUpdated[i]=0;
  Pi03_Setting_options[3]=128;
  Pi03_Setting_LastUpdated[3]=6184;
  Value_for_PortD[4]=0;
- IO_Select_PortD[4]=0;
+ Pi02_Port_Settings_D[4]=0;
  DelaySetting_for_PortD[4]=0;
  Configuration_for_PortD[4]=1;
  EventMarker_for_PortD[4]=0;
@@ -152,7 +152,7 @@ Pi03_Setting_LastUpdated[i]=0;
  Pi03_Setting_options[4]=128;
  Pi03_Setting_LastUpdated[4]=6184;
  Value_for_PortD[5]=0;
- IO_Select_PortD[5]=65;
+ Pi02_Port_Settings_D[5]=65;
  DelaySetting_for_PortD[5]=0;
  Configuration_for_PortD[5]=1;
  EventMarker_for_PortD[5]=0;
@@ -168,7 +168,7 @@ Pi03_Setting_LastUpdated[i]=0;
  Pi03_Setting_options[5]=0;
  Pi03_Setting_LastUpdated[5]=6184;
  Value_for_PortD[6]=0;
- IO_Select_PortD[6]=65;
+ Pi02_Port_Settings_D[6]=65;
  DelaySetting_for_PortD[6]=0;
  Configuration_for_PortD[6]=1;
  EventMarker_for_PortD[6]=0;
@@ -184,7 +184,7 @@ Pi03_Setting_LastUpdated[i]=0;
  Pi03_Setting_options[6]=0;
  Pi03_Setting_LastUpdated[6]=6184;
  Value_for_PortD[7]=0;
- IO_Select_PortD[7]=0;
+ Pi02_Port_Settings_D[7]=0;
  DelaySetting_for_PortD[7]=0;
  Configuration_for_PortD[7]=1;
  EventMarker_for_PortD[7]=0;
@@ -200,7 +200,7 @@ Pi03_Setting_LastUpdated[i]=0;
  Pi03_Setting_options[7]=34;
  Pi03_Setting_LastUpdated[7]=8131;
  Value_for_PortD[8]=0;
- IO_Select_PortD[8]=0;
+ Pi02_Port_Settings_D[8]=0;
  DelaySetting_for_PortD[8]=0;
  Configuration_for_PortD[8]=1;
  EventMarker_for_PortD[8]=0;
@@ -232,7 +232,7 @@ Pi03_Setting_LastUpdated[i]=0;
 // This set is for a Loco (dcc address 3) with Audio
  // ------Current EEPROM Settings----------
  Value_for_PortD[1]=0;
- IO_Select_PortD[1]=0;
+ Pi02_Port_Settings_D[1]=0;
  DelaySetting_for_PortD[1]=0;
  Configuration_for_PortD[1]=1;
  EventMarker_for_PortD[1]=0;
@@ -248,7 +248,7 @@ Pi03_Setting_LastUpdated[i]=0;
  Pi03_Setting_options[1]=42;
  Pi03_Setting_LastUpdated[1]=18054;
  Value_for_PortD[2]=0;
- IO_Select_PortD[2]=0;
+ Pi02_Port_Settings_D[2]=0;
  DelaySetting_for_PortD[2]=0;
  Configuration_for_PortD[2]=1;
  EventMarker_for_PortD[2]=0;
@@ -264,7 +264,7 @@ Pi03_Setting_LastUpdated[i]=0;
  Pi03_Setting_options[2]=0;
  Pi03_Setting_LastUpdated[2]=18054;
  Value_for_PortD[3]=0;
- IO_Select_PortD[3]=0;
+ Pi02_Port_Settings_D[3]=0;
  DelaySetting_for_PortD[3]=0;
  Configuration_for_PortD[3]=1;
  EventMarker_for_PortD[3]=0;
@@ -280,7 +280,7 @@ Pi03_Setting_LastUpdated[i]=0;
  Pi03_Setting_options[3]=0;
  Pi03_Setting_LastUpdated[3]=18054;
  Value_for_PortD[4]=0;
- IO_Select_PortD[4]=0;
+ Pi02_Port_Settings_D[4]=0;
  DelaySetting_for_PortD[4]=0;
  Configuration_for_PortD[4]=1;
  EventMarker_for_PortD[4]=0;
@@ -296,7 +296,7 @@ Pi03_Setting_LastUpdated[i]=0;
  Pi03_Setting_options[4]=0;
  Pi03_Setting_LastUpdated[4]=18054;
  Value_for_PortD[5]=0;
- IO_Select_PortD[5]=0;
+ Pi02_Port_Settings_D[5]=0;
  DelaySetting_for_PortD[5]=0;
  Configuration_for_PortD[5]=1;
  EventMarker_for_PortD[5]=0;
@@ -312,7 +312,7 @@ Pi03_Setting_LastUpdated[i]=0;
  Pi03_Setting_options[5]=0;
  Pi03_Setting_LastUpdated[5]=18054;
  Value_for_PortD[6]=0;
- IO_Select_PortD[6]=0;
+ Pi02_Port_Settings_D[6]=0;
  DelaySetting_for_PortD[6]=10;
  Configuration_for_PortD[6]=1;
  EventMarker_for_PortD[6]=0;
@@ -328,7 +328,7 @@ Pi03_Setting_LastUpdated[i]=0;
  Pi03_Setting_options[6]=128;
  Pi03_Setting_LastUpdated[6]=18054;
  Value_for_PortD[7]=0;
- IO_Select_PortD[7]=0;
+ Pi02_Port_Settings_D[7]=0;
  DelaySetting_for_PortD[7]=0;
  Configuration_for_PortD[7]=1;
  EventMarker_for_PortD[7]=0;
@@ -344,7 +344,7 @@ Pi03_Setting_LastUpdated[i]=0;
  Pi03_Setting_options[7]=128;
  Pi03_Setting_LastUpdated[7]=18054;
  Value_for_PortD[8]=0;
- IO_Select_PortD[8]=0;
+ Pi02_Port_Settings_D[8]=0;
  DelaySetting_for_PortD[8]=0;
  Configuration_for_PortD[8]=1;
  EventMarker_for_PortD[8]=0;
@@ -905,10 +905,10 @@ Serial.print(" Value_for_PortD[");
 Serial.print(i);
 Serial.print("]=");
 Serial.print(Value_for_PortD[i]);Serial.println(";");
-Serial.print(" IO_Select_PortD[");
+Serial.print(" Pi02_Port_Settings_D[");
 Serial.print(i);
 Serial.print("]=");
-Serial.print(IO_Select_PortD[i]);Serial.println(";");
+Serial.print(Pi02_Port_Settings_D[i]);Serial.println(";");
 Serial.print(" DelaySetting_for_PortD[");
 Serial.print(i);
 Serial.print("]=");
@@ -990,7 +990,7 @@ Serial.println("// end of defaults ");
   
   for (int i = 1; i <= NumberOfPorts; i++) {
     RN[20 + i] = Value_for_PortD[i];
-    RN[30 + i] = IO_Select_PortD[i];
+    RN[30 + i] = Pi02_Port_Settings_D[i];
     RN[40 + i] = DelaySetting_for_PortD[i];
     RN[50 + i] = Configuration_for_PortD[i];
     RN[60 + i] = EventMarker_for_PortD[i];
@@ -1056,7 +1056,7 @@ void ReadEEPROM() {
 #endif
   for (int i = 1; i <= NumberOfPorts; i++) {
     Value_for_PortD[i] = RN[20 + i];
-    IO_Select_PortD[i] = RN[30 + i];
+    Pi02_Port_Settings_D[i] = RN[30 + i];
     DelaySetting_for_PortD[i] = RN[40 + i];
     Configuration_for_PortD[i] = RN[50 + i];
     EventMarker_for_PortD[i] = RN[60 + i];
@@ -1245,6 +1245,8 @@ extern boolean ButtonState[12] ;
 extern int lastButtonState[12];
 extern void  SetSoundEffect(uint8_t Data1,uint8_t Data2,uint8_t Data3);
 extern void BeginPlay(const char *wavfilename, uint8_t Volume);
+extern void SetMotorSpeed(uint8_t SpeedDemand,uint8_t DIRF);
+
 void ROC_MOBILE() { // group 2
   switch (ROC_code) {
     case 0:  {}    // NOP
@@ -1252,99 +1254,23 @@ void ROC_MOBILE() { // group 2
     case 1:  {}    // setup
       break;
     case 2:  {
-      
-        int servodemand;
-       
-
-        //      Serial.print("Local:");
-        //      Serial.print(CV[1]);
-        //      Serial.print(" MSG for:");
-        //      Serial.print(ROC_recipient);
+        //      Serial.print("Local:");  Serial.print(CV[1]); Serial.print(" MSG for:");  Serial.print(ROC_recipient);
+        // set Velocity, direction , lights
         Message_Decoded = true; // we understand these even if they are not for us
 #ifdef _LOCO_SERVO_Driven_Port
         if (ROC_recipient == CV[1]) { //data for me, do it!
-          Serial.print (" Set Speed ");
-          Serial.print( ROC_Data[1]);
-          LastSetSpeed = Speed_demand;
-          Speed_demand = ROC_Data[1];
-
+//          Serial.print (" Set Speed ");
+//          Serial.print( ROC_Data[1]);
+       //   Speed_demand = ROC_Data[1];  set direction etc in DIRF 
           bitWrite(DIRF, 5, ROC_Data[2]);
           bitWrite(DIRF, 4, ROC_Data[3]);
-
-// do brakes here
-          if ((LastSetSpeed>= 5) && (Speed_demand ==0)){
-                  BeginPlay("/brakes.wav",CV[111]); //brakes.wav should be a brake squeal sample
-                                                       }
-
-          
-          if  (!(bitRead(DIRF, 4))) {  //lights off
-            digitalWrite (NodeMCUPinD[FRONTLight], 1);
-            digitalWrite (NodeMCUPinD[BACKLight], 1);
+          SetMotorSpeed(ROC_Data[1],DIRF);
+// Moved all loco stuff from here to SetMotorSpeed 
                                     }
-
-          //---------Direction Lights and Servo settings---------------
-   if (bitRead(CV[29], 0)) {         // need to account for the  cv29 bit 0....
-            if (bitRead(DIRF, 5 )) {
-              servodemand = 90 - CV[6] - ((Speed_demand * CV[5])/240) ; // revoffset? CV[6] is "V(mid)", but used now as reverse v min
-              //DebugSprintfMsgSend( sprintf ( DebugMsg, "test A Speed:%d  Servo:%d", ROC_Data[1], servodemand));
-              if  (bitRead(DIRF, 4)) { //lights on
-                digitalWrite (NodeMCUPinD[FRONTLight], 0);
-                digitalWrite (NodeMCUPinD[BACKLight], 1);
-              }
-            }
-            else {
-              servodemand =  90 + CV[2] + ((Speed_demand * CV[5])/240) ;
-              //DebugSprintfMsgSend( sprintf ( DebugMsg, "test B Speed:%d  Servo:%d", ROC_Data[1], servodemand));
-              if  (bitRead(DIRF, 4)) {//lights on
-                digitalWrite (NodeMCUPinD[BACKLight], 0);
-                digitalWrite (NodeMCUPinD[FRONTLight], 1);
-              }
-            }
-          } //cv29 bit 0 = 1
-          else {   // cv29 bit 0  =0
-            if (bitRead(DIRF, 5 )) {
-              servodemand =  90 + CV[2] + ((Speed_demand * CV[5])/240) ;
-             // DebugSprintfMsgSend( sprintf ( DebugMsg, "test C  CV[2]:%d  Speed:%d  Servo:%d", CV[2], Speed_demand, servodemand));
-              
-              if  (bitRead(DIRF, 4)) {
-                digitalWrite (NodeMCUPinD[BACKLight], 0);
-                digitalWrite (NodeMCUPinD[FRONTLight], 1);
-              }
-            }
-            else {
-              servodemand = 90 - CV[6] - ((Speed_demand * CV[5])/240) ; // revoffset separate from fwd offset  CV[6] is "V(mid)", but used as reverse offset
-             // DebugSprintfMsgSend( sprintf ( DebugMsg, "test D  CV[6]:%d  Speed:%d  Servo:%d", CV[6], Speed_demand, servodemand));
-              if  (bitRead(DIRF, 4)) {
-                digitalWrite (NodeMCUPinD[FRONTLight], 0);
-                digitalWrite (NodeMCUPinD[BACKLight], 1);
-              }
-            }
-          }  //cv29 is 1
-
-          if (Speed_demand == 00) {  servodemand = 90;  }
-        
-          ButtonState[_LOCO_SERVO_Driven_Port] = false;
-          if (Speed_demand >= Last_Speed_demand) ( ButtonState[_LOCO_SERVO_Driven_Port] = true); // use button state to differentiate acc and decc needed to select between acc and decc
-          Last_Speed_demand = Speed_demand;
-          if (servodemand >= 179) {
-            servodemand = 179;
-          }
-          if ((servodemand) <= 1  ) {
-            servodemand = 1; // servo range held to    1-179
-          }
-          Loco_motor_servo_demand =    servodemand; //allows use of signed before this point
-                
-          DebugSprintfMsgSend( sprintf ( DebugMsg, "Speed set to:%d Dir:%d Lights:%d Servo:%d", ROC_Data[1], (bitRead(DIRF, 5 )),(bitRead(DIRF, 4)), Loco_motor_servo_demand));
-         
-         } 
-        #endif
-        Message_Decoded = true;
-
-      }    // Velocity, direction , lights
+#endif
+             }    // set Velocity, direction , lights
       break;
     case 3:  {
-        //Serial.println();
-
         Message_Decoded = true; // we understand these 
         if (ROC_recipient == CV[1]) {     //for me, do it!
           //Serial.print(" Function change for :");  
@@ -1353,7 +1279,7 @@ void ROC_MOBILE() { // group 2
           DebugSprintfMsgSend( sprintf ( DebugMsg, "SFX-F changed <%X>h <%X>h <%X>h",ROC_Data[1],ROC_Data[2],ROC_Data[3]));  //X is hex d is decimal
           delay(1); // make sure its sent!
          
-         SetSoundEffect(ROC_Data[1],ROC_Data[2],ROC_Data[3]); //if i could get it to compile!!
+         SetSoundEffect(ROC_Data[1],ROC_Data[2],ROC_Data[3]); //Moved settings to SetSoundEffect
           //SoundEffect_Request[1]=ROC_Data[1];
           //SoundEffect_Request[2]=ROC_Data[2];
           //SoundEffect_Request[3]=ROC_Data[3];
@@ -1364,9 +1290,7 @@ void ROC_MOBILE() { // group 2
 #endif
         
         }
-        Serial.println("  ");
-        Message_Decoded = true;
-      }    // case 3 functions
+            }    // end case 3 functions
       break;
     case 4:  {}    // query
       break;
@@ -1382,8 +1306,11 @@ void ROC_CLOCK() {
   // bad idea, to have lots of things transmitting immediately after synch.. 
   //test with delay based on subIPL  
   delay(subIPL);
-  DebugSprintfMsgSend( sprintf ( DebugMsg, " IPaddr .%d  Time Synchronised ",subIPL));
-  
+  if (POWERON) {
+  DebugSprintfMsgSend( sprintf ( DebugMsg, " IPaddr .%d  Time Synchronised. Power is ON",subIPL));
+  }
+  else{  DebugSprintfMsgSend( sprintf ( DebugMsg, " IPaddr .%d  Time Synchronised. Power is OFF",subIPL));
+  }
     Message_Decoded = true;
   //set / synch clock
 }
@@ -1492,7 +1419,7 @@ void ROC_Programming() { // GROUP  5
             port = ROC_Data[1] + TEMP;
             sendMessage[7 + i] = port; //port# value type  delay
             sendMessage[7 + i + 1] = Value_for_PortD[port]; // value=
-            sendMessage[7 + i + 2] = IO_Select_PortD[port]; //type = switch
+            sendMessage[7 + i + 2] = Pi02_Port_Settings_D[port]; //type = switch
             sendMessage[7 + i + 3] = DelaySetting_for_PortD[port]; //delay
             //Serial.print(port);
             TEMP = TEMP + 1;
@@ -1518,7 +1445,7 @@ void ROC_Programming() { // GROUP  5
             // Serial.print(" Delay= :");
             // Serial.print(ROC_Data[i+3]);
             Value_for_PortD[ROC_Data[i]] = ROC_Data[i + 1]; // value=
-            IO_Select_PortD[ROC_Data[i]] = ROC_Data[i + 2]; //type =
+            Pi02_Port_Settings_D[ROC_Data[i]] = ROC_Data[i + 2]; //type =
             DelaySetting_for_PortD[ROC_Data[i]] = ROC_Data[i + 3]; //delay
           }
           //Serial.println();
@@ -1788,7 +1715,7 @@ RN[27]=0; //050 L  set 1 for "0x50" 3 for 0x50,0x51 etc..
       }
 
       break;
-    case 18: { //set channel#  valueH  valueL
+    case 18: { //set channel#  valueH  valueL (Pi03 settings)
         Message_Decoded = true; // we understand these even if they are not for us
         if ( (ROC_recipient ==   RocNodeID) || (    ROC_recipient ==   0)) {
           uint16_t DesiredPos;
@@ -1811,21 +1738,19 @@ RN[27]=0; //050 L  set 1 for "0x50" 3 for 0x50,0x51 etc..
    // ROCRAIL DesiredPos uses 150-600 so need to change it before using with servo 
           if ((Pi03_Setting_options[ROC_Data[1]] & 32) == 32) { ///SERVO....To address a channel instead of a port the port type servo must be set on the interface tab of switches and outputs
              DesiredPos = (ROC_Data[1 + 1] * 256) + ROC_Data[1 + 2];
-             SDemand[ROC_Data[1]] = ((DesiredPos - 150) * 2) / 5;  // why??  // set demand set servo position for test
-
+             SDemand[ROC_Data[1]] = ((DesiredPos - 150) * 2) / 5;  // why??  because it sets "demand" to set servo position for test
              DebugSprintfMsgSend( sprintf ( DebugMsg, "Servo[%d] to:%d degrees",ROC_Data[1],(((DesiredPos - 150) * 2) / 5)));
-
-              SERVOS();} // set the servo immediately range 150-600 (rocrail limmits) = 0 to 180
-
-          // if PWM output   //  ROCRAIL DesiredPos sets 0-4095 range,,   Arduino PWM range is 0-1023, 
+             SERVOS();                                        } // set the servo immediately range 150-600 (rocrail limmits) = 0 to 180 so we can see the movement                                                }          
+   
+   
+   // if PWM output   //  ROCRAIL DesiredPos sets 0-4095 range,,   Arduino PWM range is 0-1023, 
            if ((Pi03_Setting_options[ROC_Data[1]] & 128) == 128) { // set pwm immediately, arduino range is 0-1023, rocrail has 0-4095 range
-            Serial.print(" PWM to :");
-            Serial.println(DesiredPos/4);
-            analogWrite( NodeMCUPinD[ROC_Data[1]], DesiredPos/4);   
-            }
-         // WriteEEPROM();// not ten sec, as we have all the data now..
+            DebugSprintfMsgSend( sprintf ( DebugMsg, " PWM to :[%d]",DesiredPos/4));
+            analogWrite( NodeMCUPinD[ROC_Data[1]], DesiredPos/4);   // change to the desired pwm.
+                                                                 } 
+         
           Data_Updated = true;
-          EPROM_Write_Delay = millis() + 20000; // not ten sec, as we have all the data now..
+          EPROM_Write_Delay = millis() + 30000; // 30 sec, not ten sec, as we may be wanting to tweak it when we see the movement..
         }
         Message_Decoded = true;
       }
@@ -1845,9 +1770,9 @@ void ROC_Outputs() { //group 9
           STATE = ROC_Data[1];
           
          
- if ((IO_Select_PortD[ROC_Data[4]] & 0x01) == 0) {      // Setting an output first make sure its an output!
+ if ((Pi02_Port_Settings_D[ROC_Data[4]] & 0x01) == 0) {      // Setting an output first make sure its an output!
             ButtonState[ROC_Data[4]] = STATE;
-      if ((IO_Select_PortD[ROC_Data[4]] & 64) == 64)   {  // invert ?
+      if ((Pi02_Port_Settings_D[ROC_Data[4]] & 64) == 64)   {  // invert ?
               STATE = !STATE;   // invert state
                                                     }   
           if ((Pi03_Setting_options[ROC_Data[4]] & 32) == 32) {   //SERVO....To address a channel instead of a port the port type servo must be set on the interface tab of switches and outputs
@@ -1874,7 +1799,7 @@ void ROC_Outputs() { //group 9
           else {   // not servo
             if ((Pi03_Setting_options[ROC_Data[4]] & 128) == 128) {// is channel blink set, if so, use PWM outputs as settings for on and off channel positions
            //PrintTime("SET PWM OUTPUT D");Serial.print (ROC_Data[4]);
-           //   if((IO_Select_PortD[ROC_Data[4]] & 129) == 128){Serial.print(" flashing ");}
+           //   if((Pi02_Port_Settings_D[ROC_Data[4]] & 129) == 128){Serial.print(" flashing ");}
              
            //   Serial.print (" PWM set by rocrail  ");
            //   Serial.println (FlashHL(STATE, ROC_Data[4]));// STATE will record on or off, so we can turn flashing on and off
@@ -1883,15 +1808,15 @@ void ROC_Outputs() { //group 9
               SDemand[ROC_Data[4]] = FlashHL(STATE, ROC_Data[4]); // save  what we have set for flashing 
               
                
-              if((IO_Select_PortD[ROC_Data[4]] & 129) == 128){DebugSprintfMsgSend( sprintf ( DebugMsg, "Setting Output FLASHING %d  to %d", ROC_Data[4], SDemand[ROC_Data[4]]));}
+              if((Pi02_Port_Settings_D[ROC_Data[4]] & 129) == 128){DebugSprintfMsgSend( sprintf ( DebugMsg, "Setting Output FLASHING %d  to %d", ROC_Data[4], SDemand[ROC_Data[4]]));}
               else {DebugSprintfMsgSend( sprintf ( DebugMsg, "Setting Output %d (PWM) to %d", ROC_Data[4], SDemand[ROC_Data[4]]));}
             }
             else {                                                // this is a pure digital output
             // PrintTime(" (1251) OUTPUT D");Serial.print (ROC_Data[4]);   
-            //  if((IO_Select_PortD[ROC_Data[4]] & 129) == 128){Serial.print(" flashing ");}
+            //  if((Pi02_Port_Settings_D[ROC_Data[4]] & 129) == 128){Serial.print(" flashing ");}
               
               
-              if((IO_Select_PortD[ROC_Data[4]] & 129) == 128){DebugSprintfMsgSend( sprintf ( DebugMsg, "Setting Output FLASHING %d (Digital) to %d", ROC_Data[4], STATE));}
+              if((Pi02_Port_Settings_D[ROC_Data[4]] & 129) == 128){DebugSprintfMsgSend( sprintf ( DebugMsg, "Setting Output FLASHING %d (Digital) to %d", ROC_Data[4], STATE));}
               else{ DebugSprintfMsgSend( sprintf ( DebugMsg, "Setting Output %d (Digital) to %d", ROC_Data[4], STATE)); }
              
               //Serial.println (STATE);// record on or off, so we can turn flashing on and off

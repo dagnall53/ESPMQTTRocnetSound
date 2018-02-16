@@ -13,6 +13,8 @@
   #include "AudioOutputI2SNoDAC.h"
   #endif 
 
+
+
 AudioGeneratorWAV *wav;
 AudioFileSourceSPIFFS *file;
 #ifdef _AudioDAC
@@ -45,6 +47,26 @@ extern uint8_t  CV[256];
 void SetChuffPeriod(long Setting){
   ChuffPeriod=Setting;
 }
+
+
+void SetChuffPeriodFromSpeed(uint16_t value){
+  uint16_t SavedValue;
+  uint16_t ChuffPeriod;
+ // if changes to motor speed, change chuff period:
+            SavedValue=value; // to uint 16t
+            ChuffPeriod=4000;  // just to cover div by zero case if not covered later. 
+            if (SavedValue<=0){ChuffPeriod=4000;}                 
+            else{ChuffPeriod=2590/SavedValue;}      /// Proper calcs below, but you will probably need to play with the value to fit your motor speed settings etc.
+            
+            SetChuffPeriod(ChuffPeriod);
+                                                                    //typically 10mph=259ms quarter chuff rate at 10MPH 
+                                                                    // e.g. We have 1609*10 m/hr = 16090/3600 m per second = 4.46 m per second
+                                                                    // wheel of 1.4m dia is 4.4 circumference, so we have ~ 1 rotation per second
+                                                                    // so with 4 chuffs per rev we get ~250ms "chuffperiod" at 10MPH
+//DebugSprintfMsgSend( sprintf ( DebugMsg, "Chuff rate set at %d for speed %d", ChuffPeriod,value));
+  
+}
+
 void SetSoundEffect(uint8_t Data1,uint8_t Data2,uint8_t Data3){
   SoundEffect_Request[1]=Data1;
   SoundEffect_Request[2]=Data2;
@@ -166,6 +188,7 @@ void Chuff (String ChuffChoice){
    //steamoutputpin stuff  here for one puff per chuff 
    #ifdef _LOCO_SERVO_Driven_Port
    SteamOnStarted=millis(); digitalWrite (NodeMCUPinD[SteamOutputPin],HIGH);
+    if(bitRead(SoundEffect_Request[2],0)==1){ //F9 is chuffs on
    switch (ChuffCycle){ 
                               case 0:Chuff=ChuffType+"1.wav";BeginPlay(Chuff.c_str(),CV[110]);ChuffCycle=1;
                               //Stuff here only for strobe use, one per rev to help set chuff rate
@@ -174,7 +197,7 @@ void Chuff (String ChuffChoice){
                               case 1:Chuff=ChuffType+"2.wav";BeginPlay(Chuff.c_str(),CV[110]);ChuffCycle=2;break;
                               case 2:Chuff=ChuffType+"3.wav";BeginPlay(Chuff.c_str(),CV[110]);ChuffCycle=3;break;
                               case 3:Chuff=ChuffType+"4.wav";BeginPlay(Chuff.c_str(),CV[110]);ChuffCycle=0;break;
-}
+}}
 #endif
 }
 }

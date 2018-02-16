@@ -8,6 +8,8 @@
   
 
 void SetChuffPeriod(long Setting);
+void SetChuffPeriodFromSpeed(uint16_t value);
+//void SetChuffPeriodFromServoPos(uint16_t value);
 void SetSoundEffect(uint8_t Data1,uint8_t Data2,uint8_t Data3);
 void SetUpChuff(uint32_t TimeNow);
 void BeginPlay(const char *wavfilename, uint8_t Volume);
