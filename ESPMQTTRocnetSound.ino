@@ -16,22 +16,18 @@
        String wifiPassword = PASS_RR; 
 #endif
 #include <ESP8266WiFi.h>
-
-
-//if using Really Small Message Broker you will need to use 3_1 not 3_1_1
-// so change PubSubClient. h line 19 to define '3_1' like this: 
-// #define MQTT_VERSION MQTT_VERSION_3_1  /// needed for rsmb  
 /*
-#include <WiFiClient.h>
-#include <PubSubClient.h>
-
 WiFiClient espClient;
-PubSubClient client(espClient);
+PubSubClient client(espClient); in MQTT now
 */
 #include <Servo.h>
 #include <EEPROM.h>
 
+// adding FTP support!
+#include <ESP8266FtpServer.h>
 
+FtpServer ftpSrv;   //set #define FTP_DEBUG in ESP8266FtpServer.h to see ftp verbose on serial
+//FTP support
 uint8_t wifiaddr;
 uint8_t ip0;
 uint8_t ip1;
@@ -46,7 +42,8 @@ uint32_t LocoCycle;
 uint16_t MyLocoLAddr ;
 uint8_t MyLocoAddr ;
 uint8_t Loco_motor_servo_demand = 0 ;
-
+uint8_t Loco_servo_last_position;
+bool Last_Direction;
 
 #include "Globals.h"
 #include "Subroutines.h";
@@ -62,7 +59,7 @@ uint8_t Loco_motor_servo_demand = 0 ;
  #include "RFID_Subs.h";
 #endif
 
-
+extern  uint32_t Motor_Setting_Update_Time;
 
 void ConnectionPrint() {
   Serial.println("");
@@ -98,7 +95,7 @@ void Status(){
 #else    
 
   WiFi.mode(WIFI_STA);  //Alternate "normal" connection to wifi
-  WiFi.setOutputPower(20.5);
+  WiFi.setOutputPower(30);
   WiFi.begin(wifiSSID.c_str(), wifiPassword.c_str());
   
   while (WiFi.status() != WL_CONNECTED) {delay(500);Serial.print(F("Trying to connect to {"));
@@ -199,10 +196,9 @@ void _SetupOTA(String StuffToAdd){
 }
 
 void setup() {  
-    Serial.begin(115200);
+   Serial.begin(115200);
  // original location _SetupOTA(Nickname);
   
-  POWERON = true;
   Ten_Sec = 10000;
 
   SetPortPinIndex();  //sets up nodemcucross references 
@@ -237,11 +233,16 @@ void setup() {
   
   #ifdef _LOCO_SERVO_Driven_Port 
    Pi03_Setting_options[_LOCO_SERVO_Driven_Port] = 32 + 10; // KEEP this i/o as a "SERVO" output regardless, 10= delay to use for servo changes = 100ms rate ;
-     
+  #ifdef _LocoPWMDirPort
+   Pi03_Setting_options[_LOCO_SERVO_Driven_Port] = 128 + 10; // Set this i/o as a "PWM" output regardless, 10= delay to use for servo changes = 100ms rate ;
+   #endif  
   #endif
+  PortSetupReport();  //make any port direction changes.
+  ImmediateStop(); // stop motor as soon as ports set up
 #ifdef  _Force_Loco_Addr
-CV[1]= _Force_Loco_Addr;
+       CV[1]= _Force_Loco_Addr;
 #endif
+
   MyLocoLAddr = CV[18] + ((CV[17] & 0x3F) * 256);
   MyLocoAddr = CV[1]; ///
 
@@ -257,7 +258,9 @@ CV[1]= _Force_Loco_Addr;
 
   Motor_Speed = 0;
   Speed_demand = 0;
-  Last_Speed_demand = 0;
+  Last_Speed_demand = 0; 
+  Loco_motor_servo_demand=90;
+  Motor_Setting_Update_Time=millis();
   connects = 0;
   oldconnects = 0;
 
@@ -272,7 +275,7 @@ CV[1]= _Force_Loco_Addr;
   EPROM_Write_Delay = millis();
  
  
-  PortSetupReport();  // sends port configuration to serial monitor
+  //PortSetupReport();  // sends port configuration to serial monitor
   digitalWrite (NodeMCUPinD[SignalLed], SignalON) ;  /// turn On
   // set the servos neutral here??
   // ReadInputPorts();
@@ -280,9 +283,11 @@ CV[1]= _Force_Loco_Addr;
     lastButtonState[i] = digitalRead(NodeMCUPinD[i]);
     ButtonState[i] = 0; // just set them all 0 at this stage 
     PortTimingDelay[i] = millis();
-    ServoOffDelay[i] = millis() + 10000;
+    ServoOff_Delay_Until[i] = millis() + 10000;
   }
-
+//#ifdef _AudioDAC  
+//digitalWrite (NodeMCUPinD[I2SDAC_LRC], LOW) ;  /// turn off blue light? (unless needed!)
+//#endif
   
   ResetWiFi = false;
   MSGReflected = true;
@@ -320,14 +325,20 @@ CV[1]= _Force_Loco_Addr;
   delay(1000);
 #endif
 
-  //digitalWrite (2,HIGH); //test...Switch off D4 led on esp8266 should not affect other uses..
-// #ifdef _AudioNoDAC 
-// pinMode(2, INPUT_PULLUP);//test
-// #endif
 
- #ifdef _Audio
+#ifdef _Audio
   SetUpChuff(millis());
 #endif
+
+ /////FTP Setup, ensure SPIFFS is started before ftp;  /////////
+#ifdef ESP32       //esp32 we send true to format spiffs if cannot mount
+  if (SPIFFS.begin(true)) {
+#elif defined ESP8266
+  if (SPIFFS.begin()) {
+#endif
+      Serial.println("SPIFFS opened!");
+      ftpSrv.begin("esp8266","esp8266");    //username, password for ftp.  set ports in ESP8266FtpServer.h  (default 21, 50009 for PASV)
+  } 
 
  }  /// end of setup ///////
 
@@ -335,23 +346,22 @@ CV[1]= _Force_Loco_Addr;
 //+++++++++++++++++++++++++++++++++++++++++++++++++MAIN LOOP++++++++++++++++++++++++++++++++++++++++++++
 extern long ChuffPeriod;
 void loop() {
+
+  ftpSrv.handleFTP();        //make sure in loop you call handleFTP()!!  
+
     LoopTimer = millis(); // idea is to use LoopTimer instead of millis to ensure synchronous behaviour in loop
 
 #ifdef _Audio
   AudioLoop(LoopTimer);
   SoundEffects();
-  
-  if (TimeToChuff(LoopTimer)){ Chuff("/BBCH");} // select chuff sound samples "/BBCH" is my best sounding set.. or try "/ivor_" or "/Fenchurch" 
-//   
+  if (TimeToChuff(LoopTimer)){ Chuff("/BBCH");} // select chuff sound samples "/BBCH" is my best sounding set.. or try "/ivor_" or "/Fenchurch"  
 #endif
 
   digitalWrite (NodeMCUPinD[SignalLed] , SignalOFF) ; ///   turn OFF signal lamp
   ArduinoOTA.handle();
-  // new MQTT stuff, & check we are connected.. 
+  // MQTT stuff, & check we are connected.. 
   if (!MQTT_Connected()) {    // was if (!client.connected()) {
-    #ifdef _LOCO_SERVO_Driven_Port
-    SetServo(_LOCO_SERVO_Driven_Port,90);   // mod      (90);  // STOP motor servo 
-    #endif
+    ImmediateStop();
     connects = connects + 1;
     reconnect();
   }
@@ -364,14 +374,13 @@ void loop() {
   */
   // Stop the motor if you lose connection  //
   if (( MSGReflected == false) && (LoopTimer >= MsgSendTime + 200)) {
-    #ifdef  _LOCO_SERVO_Driven_Port
-    SetServo(_LOCO_SERVO_Driven_Port,90);   // mod      (90);  
-    #endif
+       ImmediateStop();
     MQTTSendQ1 (SentTopic, SentMessage);
     DebugSprintfMsgSend(sprintf ( DebugMsg, "*RESENDING sensor msg--  "));
   }  //pseudo QoS1 resend
 
-  if (LoopTimer >= lastsec + 1000 ) {//sign of life
+//Sign of life flash
+  if (LoopTimer >= lastsec + 1000 ) {//sign of life flash 
     lastsec = lastsec + 1000;
     secs = secs + 1;
     Serial.print(".");
@@ -382,8 +391,7 @@ void loop() {
   //   digitalWrite(NodeMCUPinD[SignalLed], Phase);
   // 
 
-
-  
+ 
 
   // +++++++++++++++can reset wifi on command "update node to sw 0"
   if ( ResetWiFi == true) { //reset settings - for testing purposes
@@ -427,9 +435,7 @@ void loop() {
 #ifdef _RFID
   checkRFID();
 #endif
-#ifdef  _LOCO_SERVO_Driven_Port
-  DoLocoMotor();
-#endif
+  DoLocoMotor(); // needs checks internally for loco port existance
   SERVOS();
   FLASHING();
   ReadInputPorts();
