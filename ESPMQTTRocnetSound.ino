@@ -327,7 +327,7 @@ void setup() {
 
 
 #ifdef _Audio
-  SetUpChuff(millis());
+  SetUpAudio(millis());
 #endif
 
  /////FTP Setup, ensure SPIFFS is started before ftp;  /////////
@@ -345,8 +345,8 @@ void setup() {
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++MAIN LOOP++++++++++++++++++++++++++++++++++++++++++++
 extern long ChuffPeriod;
-void loop() {
 
+void loop() {
   ftpSrv.handleFTP();        //make sure in loop you call handleFTP()!!  
 
     LoopTimer = millis(); // idea is to use LoopTimer instead of millis to ensure synchronous behaviour in loop
@@ -402,7 +402,7 @@ void loop() {
 #ifdef _Use_Wifi_Manager
     WiFiManager wifiManager; wifiManager.resetSettings(); wifiManager.startConfigPortal("ROCNODE ESP AP"); //ap name (with no password) to be used if ssid password not stored/found
 #else
-  //  ESP.reset();
+  //  ESP.reset(); // needed ??
     #endif
     ResetWiFi = false; FlashMessage(" ++++++++ RESET AP Completed ++++++++ ", 10, 300, 300);
 
