@@ -1,7 +1,7 @@
 
 
 #include "Chuff.h"
-
+#ifdef _Audio 
   #include "AudioFileSourceSPIFFS.h"
   #include "AudioGeneratorWAV.h"
   #include "AudioOutputMixer.h"
@@ -50,6 +50,7 @@ extern char DebugMsg[127];
 extern uint8_t NodeMCUPinD[12];
 
 extern uint8_t  CV[256];
+
 void SetChuffPeriod(long Setting){
   ChuffPeriod=Setting;
 }
@@ -79,6 +80,7 @@ void SetSoundEffect(uint8_t Data1,uint8_t Data2,uint8_t Data3){
   SoundEffect_Request[3]=Data3;
 }
 void SetUpAudio(uint32_t TimeNow){ 
+  #ifdef _Audio 
   Serial.printf("-- Sound System Initiating -- \n");
  #ifdef _AudioDAC
   out = new AudioOutputI2SDAC();
@@ -127,9 +129,11 @@ CV[111]=127; // volume for Brake Squeal
  BeginPlayND(0,"/initiated.wav",64);// this wav file will play before anything else, but does not do the file, stub,wav deletes.
  BeginPlayND(1,"/initiated.wav",64);// this wav file will play before anything else.
     Serial.printf("-- Sound System Setup Completed -- \n");
+    #endif //audio
 }
 
 void BeginPlay(int Channel,const char *wavfilename, uint8_t CVVolume){
+  #ifdef _Audio 
  float Volume;
  Volume=(float)CVVolume*CV[100]/16384;
  
@@ -155,8 +159,10 @@ void BeginPlay(int Channel,const char *wavfilename, uint8_t CVVolume){
   Serial.print(wavfilename);  
   Serial.printf("> at volume :");
   Serial.println(Volume);}
+  #endif //audio
 }
 void BeginPlayND(int Channel,const char *wavfilename, uint8_t CVVolume){ // no deletes version
+  #ifdef _Audio 
   uint32_t NOW;
   NOW=micros();
   float Volume;
@@ -184,7 +190,7 @@ void BeginPlayND(int Channel,const char *wavfilename, uint8_t CVVolume){ // no d
   Serial.print(wavfilename);  
   Serial.printf("> at volume :");
   Serial.println(Volume);
-
+#endif //audio
 }
 
 
@@ -281,7 +287,7 @@ void AudioLoop(int32_t TimeNow){
                                        }                            
         
   }  
- 
+ #endif
 
  
 

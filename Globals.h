@@ -27,23 +27,13 @@ uint16_t SW_REV = 11;
 //// Debug settings
 #define _SERIAL_DEBUG  1
 #define _SERIAL_SUBS_DEBUG 1
-//#define _SERVO_DEBUG 1
+
 char DebugMsg[127];
 //#include "SV.h"
 
 //one cross reference for each port   
 uint8_t NodeMCUPinD[12];
 
-
-#ifdef _Audio
-//RX/d9, D8, and D4 pins.defined below
-#define I2SDAC_DIN 9  // D9/rx used for both Audio types
-#define I2SDAC_LRC  4  // D4 used because of default i2s settings (is i2s clock?) can be set as input if you need the pin..
- 
- #ifdef _AudioDAC
-   #define I2SDAC_CLK  8 // D8 used by DAC only
- #endif 
-#endif
 
 
 uint8_t recMessage[128];

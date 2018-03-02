@@ -20,15 +20,15 @@
 //#define _DefaultPrintOut 1 // for printing the defaults on eprom save so you can save them in the RocSubs:SetDefaultSVs() function 
 // #define _Use_Wifi_Manager // uncomment this to use a "standard" fixed SSID and Password
 
-#define _AudioDAC  // to use Earle F Philhowers's audio libraries and I2C dac for audio 
+//#define _AudioDAC  // to use Earle F Philhowers's audio libraries and I2C dac for audio 
 //#define _AudioNoDAC  //  to use Earle F Philhowers's audio libraries and his clever single transistor 1 bit oversampling dac for audio 
 
 // I could probably be cleverer with this set!!
 #ifdef _AudioNoDAC
-#define _Audio // sets some compiler stuff
+#define _Audio // sets some common audio compiler stuff
 #endif
 #ifdef _AudioDAC
-#define _Audio // sets some compiler stuff
+#define _Audio // sets some common audio compiler stuff
 #endif
 
 #ifdef _Audio
