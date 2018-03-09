@@ -1280,9 +1280,7 @@ void ROC_MOBILE() { // group 2
           delay(1); // make sure its sent!
          
          SetSoundEffect(ROC_Data[1],ROC_Data[2],ROC_Data[3]); //Moved settings to SetSoundEffect
-          //SoundEffect_Request[1]=ROC_Data[1];
-          //SoundEffect_Request[2]=ROC_Data[2];
-          //SoundEffect_Request[3]=ROC_Data[3];
+         
 /*               //ROC_Data[1];    // F1-F8   
                  //ROC_Data[2];    // F9-F16
                  //ROC_Data[3];    // F17-F24

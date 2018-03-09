@@ -22,7 +22,7 @@
 
 // stuff for ssid reset
 boolean  ResetWiFi;
-uint16_t SW_REV = 11;   
+uint16_t SW_REV = 13;   
 
 //// Debug settings
 #define _SERIAL_DEBUG  1

@@ -5,7 +5,7 @@
 #define SignalON LOW  // defined so I can change the "phase of the SignalLED" easily.
 #define SignalOFF HIGH
 
-#define _LOCO_SERVO_Driven_Port 1    // if using as mobile (LOCO) node.. node becomes a loco with servo on port D "1"  for motor control
+//#define _LOCO_SERVO_Driven_Port 1    // if using as mobile (LOCO) node.. node becomes a loco with servo on port D "1"  for motor control
 //#define _LocoPWMDirPort  3         // add this second Port if using PWM loco motor control assumes L293 inputs driven from port D(_LOCO_SERVO_Driven_Port) and D(_LocoPWMDirPort)
                                      //
 

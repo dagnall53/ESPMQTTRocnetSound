@@ -36,10 +36,21 @@ Servo myservo6;  // create servo object to control a servo
 Servo myservo7;  // create servo object to control a servo
 Servo myservo8;  // create servo object to control ... used for loco motors in ver 106 back
 
+// conditional externs 
+#ifdef _Audio 
+extern uint8_t SoundEffect_Request[3];
+extern void SetChuffPeriodFromSpeed(uint16_t value);
+//extern void SetChuffPeriodFromServoPos(uint16_t value);
+
+#endif
 
 
 //
 // Stuff to work the ports on the ESP
+void SetMotorSpeed(uint8_t SpeedDemand,uint8_t DIRF); 
+void SetLocoMotorRC(int LocoPort, uint16_t SpeedDemand,bool dir);
+void SetLocoMotorPWM(int LocoPort, uint16_t SpeedDemand,bool dir);
+void ImmediateStop(void);
 void DoLocoMotor(void);
 void READ_PORT( int i);
 void ReadInputPorts(void);
@@ -47,14 +58,15 @@ void PortMode(int i);
 void PortSetupReport(void);
 boolean Debounce (int i);
 int FlashHL(int state, int port);
-void FLASHING(void); 
+void FLASHING(void);
 void DetachServo(int i);
 void DETACH(void);
 void SetServo( int i, uint16_t value);
 uint16_t servoLR(int state, int port);
 void SERVOS(void);
 
-extern uint8_t SoundEffect_Request[3];
+// the actual code follows
+
 
 void SetMotorSpeed(uint8_t SpeedDemand,uint8_t DIRF){
 #ifdef _LOCO_SERVO_Driven_Port 
@@ -64,10 +76,12 @@ uint8_t Dir;
 
 //DebugSprintfMsgSend( sprintf ( DebugMsg, "LastSetSpeed:%d speed demand:%d",Last_Speed_demand, SpeedDemand));
 
+#ifdef _Audio
 // do brakes here
           if ((Last_Speed_demand>= 5) && (SpeedDemand ==0)&&(bitRead(SoundEffect_Request[2],0)==1)){ //F9 is chuffs on
-                  BeginPlay(0,"/brakes.wav",CV[111]); //brakes.wav should be a brake squeal sample
-                                                      }
+                       BeginPlay(0,"/brakes.wav",CV[111]); //brakes.wav should be a brake squeal sample
+                       }  
+#endif 
 // check for lights off          
           if  (!(bitRead(DIRF, 4))) {  //lights off
                 digitalWrite (NodeMCUPinD[FRONTLight], 1);
@@ -212,7 +226,7 @@ digitalWrite (NodeMCUPinD[_LocoPWMDirPort] , true) ;
  #endif
 }
 
-extern void SetChuffPeriodFromSpeed(uint16_t value);
+
 
 void ImmediateStop(void){
   #ifdef _LOCO_SERVO_Driven_Port 
@@ -226,14 +240,14 @@ void ImmediateStop(void){
   }
 
 
-
 void DoLocoMotor(void){  // use Last_Speed_demand, Speed_demand to set servo or pwm
   int offset;
   int steps;
-  int SPEEDSET;
+  uint16_t SPEEDSET;
   bool Dir;
 
 #ifdef _LOCO_SERVO_Driven_Port
+
    ServoOff_Delay_Until[_LOCO_SERVO_Driven_Port] = millis() + 10000;  // reset the servo off delay for the motor...
  //  POWERON=true; //temporary whilst sorting code 
    if (POWERON == false) { // Track power off, stop the motor, zero the motor servo immediately
@@ -265,14 +279,21 @@ void DoLocoMotor(void){  // use Last_Speed_demand, Speed_demand to set servo or 
        
         // DebugSprintfMsgSend( sprintf ( DebugMsg, "Do Loco Motor Last speed:%d offset%d  New speed:%d Direction:%d",Last_Speed_demand,offset, SPEEDSET,Dir));
 
-if(Last_Speed_demand==0){// give a quick pulse to ensure starting works with pwm, but not as well with servo
+//KICK START MOTOR
+int SP;  // fixed settings for now, may change to CV[] values later
+int TI;
+SP=40;
+TI=100;
+if(Last_Speed_demand==0){// give a quick kick pulse to ensure starting from stopped. This works well with pwm, but not as well with servo
   #ifndef _LocoPWMDirPort
-                SetLocoMotorRC(_LOCO_SERVO_Driven_Port,50,Dir);
-                delay(100); //to allow a servo output
+                SetLocoMotorRC(_LOCO_SERVO_Driven_Port,SP,Dir);
+                delay(TI*2); //run for this long before going to "correct" speed, longer for servo than pwm
+         //  DebugSprintfMsgSend( sprintf ( DebugMsg, "Kick start motor speed%d Time:%dms  Dir%d",SP,TI*2,Dir));
             #endif
 #ifdef _LocoPWMDirPort
-                SetLocoMotorPWM(_LOCO_SERVO_Driven_Port,2000,Dir);// 
-               delay(50); //to allow a servo output // needs delay ?? seems to work without
+                SetLocoMotorPWM(_LOCO_SERVO_Driven_Port,SP,Dir);// 
+               delay(TI); //run for this long before going to "correct" speed
+         //      DebugSprintfMsgSend( sprintf ( DebugMsg, "Kick start motor speed%d Time:%dms  Dir%d",SP,TI,Dir));
 #endif
   }
 
@@ -296,7 +317,7 @@ if(Last_Speed_demand==0){// give a quick pulse to ensure starting works with pwm
        
    
        
-#endif
+#endif // is loco
 }
 
 void READ_PORT( int i) {
@@ -612,8 +633,8 @@ void DETACH() {
              }
 
 
-//extern void SetChuffPeriodFromServoPos(uint16_t value);
-extern void SetChuffPeriodFromSpeed(uint16_t value);
+
+
 
 void SetServo( int i, uint16_t value) { // uses 0-180
   long MotorSpeed;
