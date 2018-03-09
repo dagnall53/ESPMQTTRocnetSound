@@ -1,20 +1,21 @@
 # ESPMQTTRocnetSound
-This is a significant upgrade to my ESPWIFIRocnet project, adding .wav based sound effects for the Loco.
+This is a significant upgrade to my ESPWIFIRocnet project, adding .wav based two channel sound effects for the Loco.
+This version has improved PWM drive for locos.
 
 Please note that there a lot of compiler directives (#defines) set in "Directives.h", these allow the code to be set up for a range of different uses and available hardware.
 
-Video of an initial test set-up without the loco: https://youtu.be/Vd0HbV_MXVI
+Video of a test with the 3d printed loco: https://www.youtube.com/watch?v=Pg5r6MZDhww
 
-As a loco decoder it gives full control over a loco's motor and front and rear lights and plays "chuff" and "whistle" sound effects that are very similar to those available from commercial DCC sound decoders. Its main limitation is that it cannot simultaneously play two tracks, so the "chuff" effects are temporarily muted whilst whistles etc are played.
+When the code is compiled as a "LOCO" decoder (By including the #define "loco_Servo_driven_port" directive) it gives full control over a loco's motor and front and rear lights and plays "chuff" and "whistle" sound effects that are very similar to those available from commercial DCC sound decoders. All the sounds are WAV files and can be uploaded usibg a built in FTP server. 
 
 The interface is designed to be used as a Node in a RocRail http://wiki.rocrail.net/doku.php controlled model railway and uses the RocNet (http://wiki.rocrail.net/doku.php?id=rocnet:rocnet-prot-en) protocol with an MQTT interface using the PubSubClient https://github.com/knolleary/pubsubclient. 
 
-The code should compile and set up as a loco with an address initially set by "#define _Force_Loco_Addr 8 ", and an Rocnode that will be dependant on your router (if you use #define _ForceRocnetNodeID_to_subIPL). Look at the serial terminal to see how the code is setting istself up!.
+The code should compile and set up as a loco with an address of 8 (say) initially set by "#define "Force_Loco_Addr 8", and an Rocnode that will be dependant on your router (if you use #define "ForceRocnetNodeID_to_subIPL"). Look at the serial terminal to see how the code is setting istself up!.
 The MQTT stuff will search for a MQTT broker from 192.168.0.3 to 192.168.0.50. The code is not set up for passwords, but this could be added. This search range can be changed in MQTT:reconnect (MQTT.cpp line 269).
 
 I use Mosquitto on the same PC that runs Rocrail (note that RocRail will need the MQTT address explicitly in its controller setup).  
 
-The MQTT in this program includes a "debug" message that can be subscribed to to give an indication of what s going on. I use it mainly to moonitor/check that nodes are still conneced. 
+The MQTT in this program includes a "debug" message that can be subscribed to to give an indication of what s going on. I use it mainly to moonitor/check that nodes are still connected.  Run "mosquitto_sub -h 127.0.0.1 -i "CMD_Prompt" -t debug -q 0" on the PC that is running Mosquitto and you will see the debug messages. They are very useful to check things are running. (change the IP address to the PC running Mosquitto address if you run this on another computer).
 
 The code includes ArduinoOTA updating. I have compiled, and uploaded over OTA, the code on both ESP8266 4M options (3M SPIFF and 1M SPIFF). Obviously with the 3M option, you can have longer or more sound effects. The "data" set of sound clips in the Git needs 3M SPIFFS. 
 
