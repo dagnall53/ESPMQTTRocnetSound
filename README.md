@@ -1,6 +1,6 @@
 # ESPMQTTRocnetSound
 This is a significant upgrade to my ESPWIFIRocnet project, adding .wav based two channel sound effects for the Loco.
-This version has improved PWM drive for locos.
+This version also has improved PWM drive for locos.
 
 Please note that there a lot of compiler directives (#defines) set in "Directives.h", these allow the code to be set up for a range of different uses and available hardware.
 
@@ -61,7 +61,8 @@ Port D4 IS available on the NODAC version if you need it (see https://github.com
 
 
 ## Playing sounds
-The system should say "Sound System Initiated" on start up. After that it will play chuffs when the speed is greater than about 2MPH. Pressing the "F" buttons on the loco controller will play sound effects such as whistles, Brake Squeal and Bells.. (Unfortunately the system is only single track at the moment, so the chuff is temporarily "disengaged" when the effect is playing. However it is still very effective.
+The system should say "Sound System Initiated" on start up. After that it will play chuffs when the speed is greater than about 2MPH. Pressing the "F" buttons on the loco controller will play sound effects such as whistles, Brake Squeal and Bells.. 
+Function F9 switches on / off the chuffs, which can be played simultaneously with the main f1-8 sound effects. 
 
 The volume of each "F" effect is controlled by a CV: These are defaulted to 127, but can be changed using normal DCC "CV change" procedures: 
 
@@ -89,10 +90,11 @@ CV[111]=127; // volume for Brake Squeal
 
 
 ## "LOCO" interface
- The code is mainly for use as a "LOCO" or mobile node. .
- The "#define _LOCO_SERVO_Driven_Port 1" defines that port D1 will be a servo controlled motor driver for the locomotive. 
- Ports D3 and D2 default as Front and Back Lights.
- Port D5 is a signal LED to show operation and flashes during transmissions etc.
+ The code is for use as a "LOCO" or mobile node when the define  _LOCO_SERVO_Driven_Port is set 
+ The "#define _LOCO_SERVO_Driven_Port 1" defines that port D1 will be a (servo controlled or PWM controlled) motor driver for the locomotive. 
+ Ports D5 and D2 default as Front and Back Lights.
+ Port D0 is a signal LED to show operation and flashes during transmissions etc.
+ If using a PWM motor drive, a second port "_LocoPWMDirPort" needs to be define. I use D3 for this in my hardware.
  
    The code includes interfaces for CV read/write values, and expects to be "programmed using the POM".
    It can send back values to Rocrail 's programming tab..
@@ -103,18 +105,24 @@ CV[111]=127; // volume for Brake Squeal
   
   The RocNode ID, and node "nickname" can be set via the normal Rocrail "Programming/Rocnet" tab, once the #defaults "_Force" are commented out
     
- The motor drive has been simplified
-    Loco_motor_servo_demand= 90+(CV[2]+ (SPEED*CV[5])/100);
-    CV[5](100) is the servo setting for "100%" forward speed
-       CV[2](10) is the servo setting to just start the motor forward
-         I have removed the CV[48] bias of previous versions to help match forwards and backwards.
-      Forwards:  "servodemand= 90+(CV[2]+ (SPEED*CV[5])/100);"
-      Backwards "servodemand= 90-(CV[6]+ (SPEED*CV[5])/100);  NOTE CV6 for backwards
+ The motor drive CV controls are as follows:  
+ CV[2] sets the Minimum "voltage" setting. 
+        To this is added eiter CV[66] or CV[95] (depending on direction (Fwd and reverse trims).
+        It is assumed that the CV[2] value sets the motor at a minimum speed, expected to be 3mph.
+        CV[5] is then used as a multiplier on any speed above the minimum, increasing the "voltage drive linearly.
+        
+  A Kick Start function has been added that momentarily (Time duration set by CV[65]) kicks the motor to 40 to start it. 
+
+A Maximum speed possible given the CV values is calculated and used to limit the set speed. 
+With the PWM,  precise( 0-1023 speed steps) are possible, but the RC servo control is limited to  1 degree steps from 1 to 179 degrees.
+       
+My experience is that the PWM allows better slow speed control, but lower top speed, whereas the RC has higher top speed but poor low speed control. 
     
-The Chuff period computation uses CV5 to re-extract the intended speed to generate a "ChuffPeriod" that is used to trigger chuffs. ChuffPeriod is set in 'Ports.h" line 375 onwards. . Line 387 has SetChuffPeriod(4000/MotorSpeed); By changing the constant "4000" in that location, the chuff to wheel rotation rate can be altered to get best effect for your loco. With the gearing and servo control I use this is not that accurate,and using a wheel mounted sensor (not yet implemented) may be necessary for preciscion control.
+The Chuff period computation uses the speed demand as an assumed MPH value to produce a "ChuffPeriod" that is used to trigger chuffs. ChuffPeriod is set in 'Chuff.cpp" line 73 onwards. . Line 69 has SetChuffPeriod(2590/MotorSpeed); By changing the constant "2590" in that location, the chuff to wheel rotation rate can be altered to get best effect for your loco. 
+Using a wheel mounted sensor (not yet implemented) may be necessary for preciscion control.
     
 ## "Stationary" interface   
-IF not set as Loco, the code allows full rocrail control over D1 to D8 ports. The default settings give a set of defaults derived from a saved eprom set for a station.
+IF not set as Loco, the code allows full Rocrail control over D1 to D8 ports. The default settings give a set of defaults derived from a saved eprom set for a station.
 
 This set sets 1-4 as pwm outputs (for Lights) ( BUT be careful of the strange logic in the L293 motor driver board if you use it) I personally only 2 lines to try and avoid confusion. Without the L293 driver, the ports work more intuitively. (The L293 is not simply four inverters!!)
 
