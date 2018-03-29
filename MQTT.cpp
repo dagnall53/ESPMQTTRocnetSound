@@ -216,6 +216,7 @@ if ((hrs==0)&&(mins==0)){// not Synchronised yet..
 
   void DebugSprintfMsgSend(int CX){ // allows use of Sprintf function in the "cx" location
   DebugMsgSend ("debug", DebugMsg);
+  delay(5);
 }
 
 void reconnect() {

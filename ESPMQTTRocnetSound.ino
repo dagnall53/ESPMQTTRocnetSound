@@ -44,6 +44,7 @@ uint8_t MyLocoAddr ;
 uint8_t Loco_motor_servo_demand = 0 ;
 uint8_t Loco_servo_last_position;
 bool Last_Direction;
+bool Last_Set_Dir;
 
 #include "Globals.h"
 #include "Subroutines.h";
@@ -247,7 +248,7 @@ void setup() {
   MyLocoAddr = CV[1]; ///
 
   CV[8] = 0x0D; // DIY MFR code
-  CV[7] = 0x04; //ver
+  CV[7] = SW_REV; //ver
 
   Status();
   _SetupOTA(Nickname); // now we should have the nickname etc
@@ -259,6 +260,7 @@ void setup() {
   Motor_Speed = 0;
   Speed_demand = 0;
   Last_Speed_demand = 0; 
+  
   Loco_motor_servo_demand=90;
   Motor_Setting_Update_Time=millis();
   connects = 0;
@@ -326,9 +328,7 @@ void setup() {
 #endif
 
 
-#ifdef _Audio
-  SetUpAudio(millis());
-#endif
+
 
  /////FTP Setup, ensure SPIFFS is started before ftp;  /////////
 #ifdef ESP32       //esp32 we send true to format spiffs if cannot mount
@@ -339,7 +339,9 @@ void setup() {
       Serial.println("SPIFFS opened!");
       ftpSrv.begin("esp8266","esp8266");    //username, password for ftp.  set ports in ESP8266FtpServer.h  (default 21, 50009 for PASV)
   } 
-
+#ifdef _Audio
+  SetUpAudio(millis());
+#endif
  }  /// end of setup ///////
 
 

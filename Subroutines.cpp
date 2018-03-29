@@ -138,9 +138,11 @@ void Show_MSG() {
 #endif
   }
 }
-
+extern void DebugSprintfMsgSend(int CX);
+extern char DebugMsg[127];
 void FlashMessage (char* msg, int Repeats, int ON, int Off) {
   Serial.println(msg);
+  DebugSprintfMsgSend( sprintf ( DebugMsg, "Flashing MSG"));
   for (int i = 0; i <= Repeats; i++) {
     //  Serial.print("+");
     digitalWrite (NodeMCUPinD[SignalLed] , SignalON) ; ///   turn on

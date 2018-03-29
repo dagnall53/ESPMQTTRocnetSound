@@ -1,5 +1,5 @@
 //void MQTTFetch (char* topic, byte* payload, unsigned int Length) ;
-uint8_t DIRF = 0 ;
+
 
 uint8_t LastSetSpeed;
 uint32_t PingSendTime;
@@ -31,6 +31,8 @@ extern uint16_t servoLR(int state, int port);
 extern int FlashHL(int state, int port);
 uint8_t Speed_demand ;
 uint8_t Last_Speed_demand;
+uint8_t DIRF = 0 ;
+
 
 #define Recipient_Addr  1   //  use with SetWordIn_msg_loc_value(sendMessage,Recipient_Addr,data  , or get sender or recipient addr  
 #define Sender_Addr 3       //  use with SetWordIn_msg_loc_value(sendMessage,Sender_Addr,data   
@@ -371,7 +373,7 @@ Pi03_Setting_LastUpdated[i]=0;
  RN[4]=97;
  CV[4]=3;
  RN[5]=117;
- CV[5]=80;
+ CV[5]=20;
  RN[6]=100;
  CV[6]=50;
  RN[7]=105;
@@ -491,9 +493,9 @@ Pi03_Setting_LastUpdated[i]=0;
  RN[64]=0;
  CV[64]=0;
  RN[65]=0;
- CV[65]=0;
+ CV[65]=8;
  RN[66]=0;
- CV[66]=0;
+ CV[66]=1;
  RN[67]=0;
  CV[67]=0;
  RN[68]=0;
@@ -549,7 +551,7 @@ Pi03_Setting_LastUpdated[i]=0;
  RN[93]=0;
  CV[93]=0;
  RN[94]=0;
- CV[94]=0;
+ CV[94]=1;
  RN[95]=0;
  CV[95]=0;
  RN[96]=0;
@@ -1133,7 +1135,10 @@ void Show_ROC_MSGS(uint8_t *payload) {
   Serial.print(Show_ROC_MSG());
 }
 
-
+//extern void DoLocoMotor(void);
+extern void SetMotorSpeed(uint8_t SpeedDemand,uint8_t dirf);
+extern uint8_t Speed_demand ;
+extern uint8_t Last_Speed_demand;
 void ROC_CS() { //group 1
   uint16_t CVNum;
   uint8_t OldValue;
@@ -1162,6 +1167,9 @@ void ROC_CS() { //group 1
                   }
         if (POWERON == true) {
                 DebugMsgSend("debug", " NODE ON ");
+                Last_Speed_demand=0;
+                SetMotorSpeed(Speed_demand,DIRF);
+                //DoLocoMotor();
                   }
       }
       break;
@@ -1245,7 +1253,7 @@ extern boolean ButtonState[12] ;
 extern int lastButtonState[12];
 extern void  SetSoundEffect(uint8_t Data1,uint8_t Data2,uint8_t Data3);
 extern void BeginPlay(int Channel,const char *wavfilename, uint8_t Volume);
-extern void SetMotorSpeed(uint8_t SpeedDemand,uint8_t DIRF);
+extern void SetMotorSpeed(uint8_t SpeedDemand,uint8_t dirf);
 
 void ROC_MOBILE() { // group 2
   switch (ROC_code) {
@@ -1264,9 +1272,9 @@ void ROC_MOBILE() { // group 2
        //   Speed_demand = ROC_Data[1];  set direction etc in DIRF 
           bitWrite(DIRF, 5, ROC_Data[2]);
           bitWrite(DIRF, 4, ROC_Data[3]);
-          SetMotorSpeed(ROC_Data[1],DIRF);
-// Moved all loco stuff from here to SetMotorSpeed 
-                                    }
+          // Moved all loco stuff from here to SetMotorSpeed 
+          DebugSprintfMsgSend( sprintf ( DebugMsg, " Speed<%d> Dir<%d> Lights<%d>",ROC_Data[1], bitRead(DIRF,5),bitRead(DIRF,4)));  //X is hex d is decimal
+          SetMotorSpeed(ROC_Data[1],DIRF);                          }
 #endif
              }    // set Velocity, direction , lights
       break;
@@ -1276,8 +1284,8 @@ void ROC_MOBILE() { // group 2
           //Serial.print(" Function change for :");  
           //Serial.print(ROC_recipient); Serial.print(" data :"); 
 #ifdef _Audio          
-          DebugSprintfMsgSend( sprintf ( DebugMsg, "SFX-F changed <%X>h <%X>h <%X>h",ROC_Data[1],ROC_Data[2],ROC_Data[3]));  //X is hex d is decimal
-          delay(1); // make sure its sent!
+          //DebugSprintfMsgSend( sprintf ( DebugMsg, "SFX-F changed <%X>h <%X>h <%X>h",ROC_Data[1],ROC_Data[2],ROC_Data[3]));  //X is hex d is decimal
+          //delay(1); // make sure its sent!
          
          SetSoundEffect(ROC_Data[1],ROC_Data[2],ROC_Data[3]); //Moved settings to SetSoundEffect
          
@@ -1348,7 +1356,7 @@ void ROC_NODE() { // stationary decoders GROUP 3
           //delay(subIPL*2); //prevent simultaneous responses to identify query
           MQTTSend("rocnet/dc", sendMessage);
           delay(100);
-         // DebugSprintfMsgSend( sprintf ( DebugMsg, " Responded to Identify "));
+          DebugSprintfMsgSend( sprintf ( DebugMsg, "Responding to Identify "));
           // ROCSerialPrint(sendMessage);
         }
         Message_Decoded = true;
@@ -1357,12 +1365,13 @@ void ROC_NODE() { // stationary decoders GROUP 3
     case 9:  {
         Message_Decoded = true; // we understand these even if they are not for us
         if ( (ROC_recipient ==   RocNodeID) || (    ROC_recipient ==   0)) {
-          PrintTime("     Node Shutdown    -- Powering off --  ");
-          Serial.println();
-          POWERON = false;
+          if ( (ROC_recipient ==   RocNodeID) ){   // ONLY IF ITS actually me.. Do not switch off for generic 0 message.
+                DebugSprintfMsgSend( sprintf ( DebugMsg, "Grp 3 Code 9 Shutting Node <%d> power off ",ROC_recipient));
+                POWERON = false;}
+          else {  DebugSprintfMsgSend( sprintf ( DebugMsg, "Grp 3 Code 9 for <%d> power off IGNORED. ",ROC_recipient)); }
         }
         Message_Decoded = true;
-      }    // Node Shutdown
+      }    // (Stationary )  Node Shutdown
       break;
     case 10:  {
         Message_Decoded = true; // we understand these even if they are not for us//Acknowledge
@@ -1397,6 +1406,7 @@ void ROC_NODE() { // stationary decoders GROUP 3
 extern int SDemand[12];
 
 void ROC_Programming() { // GROUP  5
+  bool Data_Changed;
   switch (ROC_code) {
     case 4:  { // read port config
         Message_Decoded = true; // we understand these even if they are not for us
@@ -1459,33 +1469,48 @@ void ROC_Programming() { // GROUP  5
         Message_Decoded = true; // we understand these even if they are not for us
         if ( (ROC_recipient ==   RocNodeID) || (    ROC_recipient ==   0)) {
           if ((ROC_Data[3] == subIPH) && (ROC_Data[4] == subIPL)) {
-            Serial.print("Programming node:  set RocNet ID to:");
+        //    Serial.print("Programming node:  set RocNet ID from:");
+        //    RocNodeID = getTwoBytesFromMessageHL(RN, 1);
+        //     Serial.print (RocNodeID);
+        Data_Changed=false;
             RocNodeID = ((ROC_Data[1] << 8) + ROC_Data[2]);
-             RocNodeID = getTwoBytesFromMessageHL(RN, 1);
+           
+           
+             
 #ifdef _ForceRocnetNodeID_to_subIPL
   RocNodeID =subIPL;
   Serial.print(" Node ID forced to subIPL");
 #endif
+            
+            if (getTwoBytesFromMessageHL(RN, 1)!= RocNodeID){
+            Serial.print("Programming node:  set RocNet ID to:");
             SetWordIn_msg_loc_value(RN, 1, RocNodeID); // set RN 1 and 2
             Serial.print (RocNodeID);
+            Data_Changed=true;}
+            else {Serial.print("Programming node: Unchanged ID");}
             // ROCSerialPrint(recMessage);
 
 
             if ( ROC_len >= 6) { // set nickname
-              Serial.print("Programming nickname ");
+              Serial.print("Programming nickname ?");
               Serial.print( ROC_len - 5); // new, uses rn3 as length
               Serial.print(" bytes ");
+              if (RN[3]!= ROC_len - 5){Data_Changed=true;}
               RN[3] = ROC_len - 5;
               for (int p = 1; ((p <= RN[3]) && (p <= 7)); p++) {
+                if (RN[3+p]!= ROC_Data[p + 5]){Data_Changed=true;}
                 Serial.write(ROC_Data[p + 5]);
                 RN[3 + p] = ROC_Data[p + 5];
               }
 
             }
             Serial.println(" ");
+            if (Data_Changed){
             WriteEEPROM();
             Data_Updated = true;
             EPROM_Write_Delay = millis() + Ten_Sec;
+          }
+          else {Serial.print("Unchanged ID and nickname");}
           }
         }
         Message_Decoded = true;

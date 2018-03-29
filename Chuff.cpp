@@ -60,18 +60,21 @@ void SetChuffPeriod(long Setting){
 void SetChuffPeriodFromSpeed(uint16_t value){
   uint16_t SavedValue;
   uint16_t ChuffPeriod;
- // if changes to motor speed, change chuff period:
+
+ // if we have a change to motor speed, change chuff period!:
             SavedValue=value; // to uint 16t
-            ChuffPeriod=4000;  // just to cover div by zero case if not covered later. 
-            if (SavedValue<=0){ChuffPeriod=4000;}                 
-            else{ChuffPeriod=2590/SavedValue;}      /// Proper calcs below, but you will probably need to play with the value to fit your motor speed settings etc.
+            ChuffPeriod=4000;  // just to cover div by zero case its not covered later. 
+            if (SavedValue<=0){ChuffPeriod=4000; }
+            else{     
+                 ChuffPeriod=2590/SavedValue;}      /// Proper calcs below, but you will probably need to play with the value to fit your wheel etc.
             
+            if (ChuffPeriod<=100){ChuffPeriod=100;} //sets a minimum chuff
             SetChuffPeriod(ChuffPeriod);
                                                                     //typically 10mph=259ms quarter chuff rate at 10MPH 
                                                                     // e.g. We have 1609*10 m/hr = 16090/3600 m per second = 4.46 m per second
                                                                     // wheel of 1.4m dia is 4.4 circumference, so we have ~ 1 rotation per second
                                                                     // so with 4 chuffs per rev we get ~250ms "chuffperiod" at 10MPH
-DebugSprintfMsgSend( sprintf ( DebugMsg, "Chuff rate set at %d ms for speed %d", ChuffPeriod,value));
+         // DebugSprintfMsgSend( sprintf ( DebugMsg, "Chuff set at %d ms for speed %d mph", ChuffPeriod,value));
   
 }
 
@@ -105,7 +108,7 @@ void SetUpAudio(uint32_t TimeNow){
  
   PlayingSoundEffect=false;   
   ChuffPlaying=false;
-  ChuffPeriod=3000;
+  ChuffPeriod=4000;
  // delay(2000); // allow time for setups..?
   LastFilePlayed="--";
   SoundEffect_Request[1]=0;
@@ -197,12 +200,12 @@ void BeginPlayND(int Channel,const char *wavfilename, uint8_t CVVolume){ // no d
 
 bool TimeToChuff(uint32_t TimeNow){
   
-   if (ChuffPeriod>=2000){return false;} // switches off chuff at very low or stopped speeds
+   if (ChuffPeriod>=3500){return false;} // switches off chuff at very low or stopped (4000ms )speeds
    if (TimeNow<=(LastChuff+ChuffPeriod)){return false;}
     else {LastChuff=TimeNow; return true;}
     }
     
-
+extern bool POWERON;
 void Chuff (String ChuffChoice){
   String Chuff;
  // if (ChuffPeriod>=60){ChuffChoice="/ch";} // test for switching sound effects with speed this works, but my fast sound clips need work 
@@ -222,7 +225,7 @@ void Chuff (String ChuffChoice){
    #ifdef SteamOutputPin  //steamoutputpin stuff  here for one puff per chuff 
    SteamOnStarted=millis(); digitalWrite (NodeMCUPinD[SteamOutputPin],HIGH); //steamoutputpin stuff  here for one puff per chuff 
    #endif
-    if(bitRead(SoundEffect_Request[2],0)==1){ //F9 is chuffs on
+    if((bitRead(SoundEffect_Request[2],0)==1)&& (POWERON)){ //F9 is chuffs on
    switch (ChuffCycle){ 
                               case 0:Chuff=ChuffType+"1.wav";BeginPlay(0,Chuff.c_str(),CV[110]);ChuffCycle=1;
                               //Stuff here only for strobe use, one per rev to help set chuff rate
