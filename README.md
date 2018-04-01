@@ -101,7 +101,7 @@ CV[111]=127; // volume for Brake Squeal
    MAKE SURE that you have the CV set in the RocRAil interface!. ALL locos shoud try to respond if CV[1]=0 (and long address is 0)
    - The "Default" for the eeprom is set as Address=3. 
    Once you are recieving data in the programming interface, you should be able to read, set and change change CV.s
-   Setting CV[13] = 13 will force a reset to default values for the whole ESP. (should reset loco to Address 3, providing this is set in the defaults.)
+   Setting CV[8] = 13 will force a reset to default values for the whole ESP. (should reset loco to Address 3, providing this is set in the defaults.)
   
   The RocNode ID, and node "nickname" can be set via the normal Rocrail "Programming/Rocnet" tab, once the #defaults "_Force" are commented out
     
