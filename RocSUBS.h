@@ -1174,9 +1174,10 @@ void ROC_CS() { //group 1
       }
       break;
     case 8:  {
-        if (((ROC_Data[2] + (ROC_Data[1] * 256)) == CV[1]) || ((ROC_Data[2] == 0) && (ROC_Data[1] == 0))) {
-          if ((ROC_Data[2] + (ROC_Data[1] * 256)) == CV[1]) {
-            Serial.print("Group 1, Code 8 for this Loco ");
+        //Serial.print(" debug**Group 1, Code 8: ROC_Data[1]<");Serial.print(ROC_Data[1]);Serial.print(" >  ROC_Data[2]<");Serial.print(ROC_Data[2]); Serial.print(">  equates to address of:"); Serial.println ((ROC_Data[2] + (ROC_Data[1] * 256)));
+        if (((ROC_Data[2] + (ROC_Data[1] * 256)) == MyLocoAddr) || ((ROC_Data[2] == 0) && (ROC_Data[1] == 0))) {
+          if ((ROC_Data[2] + (ROC_Data[1] * 256)) == MyLocoAddr) {  
+            Serial.print(" Group 1, Code 8: CV change for this Loco ");
           }
           CVNum = ((ROC_Data[3] * 256) + ROC_Data[4]);
           OldValue = CV[CVNum]; // get the old value
@@ -1184,9 +1185,7 @@ void ROC_CS() { //group 1
           if (ROC_Data[6] == 1) { // this is a SET CV
 
 // mqtt debug message
-         DebugSprintfMsgSend( sprintf ( DebugMsg, "Set CV[%d]=%d",CVNum,ROC_Data[5]));
-          
-        //   Serial.println(DebugMsg);
+    // moved...down     DebugSprintfMsgSend( sprintf ( DebugMsg, "Set CV[%d]=%d",CVNum,ROC_Data[5]));
             
             if (CVNum == 8) { // set defaults when CV8=13
               if ((ROC_Data[5] == 13)) {
@@ -1197,12 +1196,16 @@ void ROC_CS() { //group 1
                 WriteEEPROM();
               }
             }
-            else {   // Setting, but not setting defaults
+            else {   // Setting, but not setting defaults ONLY set if address is explicitly for me
+              if ((ROC_Data[2] + (ROC_Data[1] * 256)) == MyLocoAddr) { //only set if address is explicitly for me
+            // mqtt debug message
+                   DebugSprintfMsgSend( sprintf ( DebugMsg, "Set CV[%d]=%d",CVNum,ROC_Data[5]));
               CV[CVNum] = ROC_Data[5]; //set the new data
               if (OldValue != ROC_Data[5]) {
                 WriteEEPROM();  // update EEPROM only if different
                 Data_Updated = true;
                 WriteEEPROM();
+              }
               }
             }
             EPROM_Write_Delay = millis() + Ten_Sec; // update the time so you can press the same set and get another ten seconds delay
@@ -1222,11 +1225,11 @@ void ROC_CS() { //group 1
           // ----------------SEND CV Starts-----------------
           sendMessage[0] = ROC_netid;
           SetWordIn_msg_loc_value(sendMessage, Recipient_Addr, 0x00 ); // response is to host, not cs
-          SetWordIn_msg_loc_value(sendMessage, Sender_Addr, CV[1] ); // ??sent from the loco not rocnodeid??
+          SetWordIn_msg_loc_value(sendMessage, Sender_Addr, MyLocoAddr ); // ??sent from the loco not rocnodeid??
           sendMessage[5] = ROC_group;
           sendMessage[6] = ROC_code | Code_Reply; // action group, response
           sendMessage[7] = 6;   // len of data coming next
-          SetWordIn_msg_loc_value(sendMessage, 8, CV[1]); // set 8 and 9 with which loco I am
+          SetWordIn_msg_loc_value(sendMessage, 8, MyLocoAddr); // set 8 and 9 with which loco I am
           SetWordIn_msg_loc_value(sendMessage, 10, CVNum); // set 10 and 11 with the CV number
           sendMessage[12] = CV[CVNum];     // the CV value
           sendMessage[13] = 1;  //set
@@ -1266,7 +1269,7 @@ void ROC_MOBILE() { // group 2
         // set Velocity, direction , lights
         Message_Decoded = true; // we understand these even if they are not for us
 #ifdef _LOCO_SERVO_Driven_Port
-        if (ROC_recipient == CV[1]) { //data for me, do it!
+        if (ROC_recipient == MyLocoAddr) { //data for me, do it!
 //          Serial.print (" Set Speed ");
 //          Serial.print( ROC_Data[1]);
        //   Speed_demand = ROC_Data[1];  set direction etc in DIRF 
@@ -1280,7 +1283,7 @@ void ROC_MOBILE() { // group 2
       break;
     case 3:  {
         Message_Decoded = true; // we understand these 
-        if (ROC_recipient == CV[1]) {     //for me, do it!
+        if (ROC_recipient == MyLocoAddr) {     //for me, do it!
           //Serial.print(" Function change for :");  
           //Serial.print(ROC_recipient); Serial.print(" data :"); 
 #ifdef _Audio          
@@ -1325,6 +1328,8 @@ void ROC_NODE() { // stationary decoders GROUP 3
   uint8_t TEMP;
 
   switch (ROC_code) {
+  uint8_t NodeClass;  
+  
     case 8:  {  //Identify         class manuID  versionH  versionL  nr I/O  subipH  subipL
         Message_Decoded = true; // we understand these even if they are not for us
         if ( (ROC_recipient ==   RocNodeID) || (    ROC_recipient ==   0)) {   //Serial.println();
@@ -1342,7 +1347,12 @@ void ROC_NODE() { // stationary decoders GROUP 3
             Serial.print(" chars :'");
           }
           // Identify... data is:  class manuID  versionH  versionL  nr I/O  subipH  subipL
-          sendMessage[8] = 0x05; //class? = io?"bit 0= accessory" bit 1= dcc Bit 3=RFID
+NodeClass= 0x01; //class? = io?"bit 0= accessory" bit 1= dcc Bit 3=RFID FF= Accessory DCC RFID
+#ifdef _LOCO_SERVO_Driven_Port
+NodeClass= 0x02;
+#endif
+          
+          sendMessage[8] = NodeClass; 
           sendMessage[9] = 13; // manuid
           SetWordIn_msg_loc_value(sendMessage, 10, SW_REV);
           sendMessage[12] = NumberOfPorts; // 8 io seems fixed in rocrail?
@@ -1355,7 +1365,7 @@ void ROC_NODE() { // stationary decoders GROUP 3
           Serial.println("'");
           //delay(subIPL*2); //prevent simultaneous responses to identify query
           MQTTSend("rocnet/dc", sendMessage);
-          delay(100);
+          delay(100); // leave plenty of time before sending next mqtt 
           DebugSprintfMsgSend( sprintf ( DebugMsg, "Responding to Identify "));
           // ROCSerialPrint(sendMessage);
         }
@@ -1870,7 +1880,7 @@ void SendPortChange(int RNID, boolean ST, uint8_t i) {
   sendMessage[6] = 1; // action group and code
   sendMessage[7] = 4;   // len of data coming next
   sendMessage[8] = 0x00;
-  sendMessage[9] = CV[1]; // reporting loco address?
+  sendMessage[9] = MyLocoAddr; // reporting loco address?
   sendMessage[10] = ST;             sendMessage[11] = i; //port
   char Message[80];
   snprintf(Message, sizeof(Message), "*Sensor Seen&Sent  Address:%d state:%d", i, ST);

@@ -45,15 +45,7 @@ It works, but only when the loco is very slow. The response of the tag system is
    MAKE SURE that you have the CV set in the interface!. It defaults to 3 in the default eeprom settings. (ALL locos will try to respond if CV[1]=0 (and long address is 0) so chaos can be expected)
    Once set, you should be able to address an individual loco and set and change CV.s I would recommend watching the serial terminal a t least the first few times to make sure the address is properly changed.
    Setting CV[13] = 13 will force a reset to default values (and address=3 ) for the whole ESP.
-  The motor drive has been updated
-    Loco_motor_servo_demand= 90+(CV[2]+ (Speed_demand*CV[5])/100);
-    and CV[6] is used for the reverse slow speed setting.
-    CV[5](100) is the servo setting for "100%" forward speed
-    CV[2](10) is the servo setting to just start the motor forward
-    CV[3] is acceleration (1 is slow, 5 is fast)
-    CV[4] isdecelleration (1 slow, 5 fast)
-    CV[6] (MID) replaces "CV[2] for reverse direction
-   
+     
     
   WHEN USING ROCRAIL TO PROGRAM CV's, Select the loco (this selects the MQQT interafce) then program on Main(POM) (checkboxes acc off and Direct off)
 

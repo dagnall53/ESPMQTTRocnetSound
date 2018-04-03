@@ -176,14 +176,14 @@ boolean MQTT_Connected(void){
 void MQTT_Loop(void){
     client.loop(); //gets wifi messages etc..
 }
-
+extern uint16_t MyLocoAddr ;
 void DebugMsgSend (char* topic, char* payload) { // use with mosquitto_sub -h 127.0.0.1 -i "CMD_Prompt" -t debug -q 0
   char DebugMsgLocal[127];
     char DebugMsgTemp[127];
   int cx;
  
   #ifdef _LOCO_SERVO_Driven_Port
-  cx= sprintf ( DebugMsgTemp, " Node:%d Loco:%d(%s) Msg<%s>", RocNodeID, CV[1],Nickname, payload);
+  cx= sprintf ( DebugMsgTemp, " Node:%d Loco:%d(%s) Msg<%s>", RocNodeID, MyLocoAddr,Nickname, payload);
   #else
   cx= sprintf ( DebugMsgTemp, " Node:%d (%s) Msg:%s", RocNodeID, Nickname, payload);
   #endif
@@ -207,7 +207,7 @@ if ((hrs==0)&&(mins==0)){// not Synchronised yet..
       client.publish(topic, DebugMsgLocal, strlen(DebugMsgLocal));
                                           }// print just msg  line
     if (strlen(payload) >= 101) {
-      cx= sprintf ( DebugMsgLocal, "Node:%d Loco:%d Time %d:%d:%ds Msg TOO Big to print", RocNodeID, CV[1], hrs, mins, secs);
+      cx= sprintf ( DebugMsgLocal, "Node:%d Loco:%d Time %d:%d:%ds Msg TOO Big to print", RocNodeID, MyLocoAddr, hrs, mins, secs);
       client.publish(topic, DebugMsgLocal, strlen(DebugMsgLocal));
     }
 

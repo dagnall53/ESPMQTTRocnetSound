@@ -140,7 +140,10 @@ uint16_t MinSpeed;
 uint16_t AdditionalSpeedDemand;
 bool STOPdemand;
 uint16_t Max_Speed;
-MinSpeed = 3; // this is the actual (scale mph) speed when the motor is running as slow as it can reliablly
+  STOPdemand=false;
+if (SpeedDemand==0) { STOPdemand=true; }
+
+MinSpeed = 5; // RC min speed is higher than PWM...this is the actual (scale mph) speed when the motor is running as slow as it can reliablly
 //concept  : Min speed voltage is set by CV 2, with CV 65 orCV 95 trim added and is "MinSpeed"  The rest is linearly added related to by  CV 5
 //90 = CV[2] + ((max * CV[5])/10) ;
 //90-CV[2]= (max * CV[5])/10 ;
@@ -152,12 +155,7 @@ if (SpeedDemand>=Max_Speed){SpeedDemand=Max_Speed;}  // limit the max speed here
 
    
 if (POWERON){  
- // Serial.println("line  146 in SLMRC");
-  STOPdemand=false;
-if (SpeedDemand==0) { STOPdemand=true; }
 
-
- //to do
  // SET SPEED TO 3 (MPH) AND ADJUST cv2  FOR EXACT 3MPH SPEED.. use CV 65 (fwd) and CV 95 (rev) to get exact. 
  // THEN SET CV 5 FOR 10 MPH (OR HIGHER) ACCURATE SPEED
 
@@ -357,19 +355,19 @@ if((Last_Speed_demand==0)&&(Speed_demand!=0)){// give a quick kick pulse to ensu
                        //      DebugSprintfMsgSend( sprintf ( DebugMsg, "Kick start motor speed%d Time:%dms  Dir%d",SP,TI,Dir));
 #endif
                                            }
-//-----------------KICK START MOTOR
-
+//-end ----------------KICK START MOTOR
+uint16_t currentspeed;
 // do the motor drivers....        
 #ifndef _LocoPWMDirPort
-               SPEEDSET = SetLocoMotorRC(_LOCO_SERVO_Driven_Port,SPEEDSET,Dir);
+               currentspeed = SetLocoMotorRC(_LOCO_SERVO_Driven_Port,SPEEDSET,Dir);
 #endif
 #ifdef _LocoPWMDirPort
-               SPEEDSET = SetLocoMotorPWM(_LOCO_SERVO_Driven_Port,SPEEDSET,Dir);// 
+               currentspeed = SetLocoMotorPWM(_LOCO_SERVO_Driven_Port,SPEEDSET,Dir);// 
 #endif
 
 #ifdef _Audio      // sets up chuff period here so it works with acceleration etc
 if(Last_Speed_demand != Speed_demand){
- SetChuffPeriodFromSpeed(SPEEDSET);   }
+ SetChuffPeriodFromSpeed(currentspeed);   }
 #endif //is audio
          
          Last_Speed_demand=SPEEDSET;  

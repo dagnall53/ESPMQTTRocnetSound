@@ -6,7 +6,7 @@
 #define SignalOFF HIGH
 
 #define _LOCO_SERVO_Driven_Port 1  // if using as mobile (LOCO) node.. node becomes a loco with servo on port D "1"  for motor control
-//#define _LocoPWMDirPort  3         // add this second Port if using PWM loco motor control assumes L293 inputs driven from port D(_LOCO_SERVO_Driven_Port) and D(_LocoPWMDirPort)
+#define _LocoPWMDirPort  3         // add this second Port if using PWM loco motor control assumes L293 inputs driven from port D(_LOCO_SERVO_Driven_Port) and D(_LocoPWMDirPort)
                                      //
 
 #ifdef _LOCO_SERVO_Driven_Port
@@ -20,8 +20,8 @@
 //#define _DefaultPrintOut 1 // for printing the defaults on eprom save so you can save them in the RocSubs:SetDefaultSVs() function 
 // #define _Use_Wifi_Manager // uncomment this to use a "standard" fixed SSID and Password
 
-#define _AudioDAC  // to use Earle F Philhowers's audio libraries and I2C dac for audio 
-//#define _AudioNoDAC  //  to use Earle F Philhowers's audio libraries and his clever single transistor 1 bit oversampling dac for audio 
+//#define _AudioDAC  // to use Earle F Philhowers's audio libraries and I2C dac for audio 
+#define _AudioNoDAC  //  to use Earle F Philhowers's audio libraries and his clever single transistor 1 bit oversampling dac for audio 
 
 // I could probably be cleverer with this set!!
 #ifdef _AudioNoDAC
@@ -47,6 +47,6 @@
 // Then comment them out and re-program so that the loc addr etc can be set via rocrail
 //#define _ForceRocnetNodeID_to_subIPL // stops the ability of rocnet to change the node number, but prevents the possibility of two nodes having same node number
 //#define _ForceDefaultEEPROM //
-//#define _Force_Loco_Addr 8 
+//#define _Force_Loco_Addr 3 
 
 //---------------------------------------------------------------end of compiler #defines--------------

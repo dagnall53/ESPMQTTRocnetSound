@@ -39,8 +39,7 @@ IPAddress mosquitto;
 int SDelay[12];
 uint32_t LoopTimer;
 uint32_t LocoCycle;
-uint16_t MyLocoLAddr ;
-uint8_t MyLocoAddr ;
+uint16_t MyLocoAddr ;
 uint8_t Loco_motor_servo_demand = 0 ;
 uint8_t Loco_servo_last_position;
 bool Last_Direction;
@@ -141,7 +140,7 @@ void Status(){
   //++++++++++++++++++++Print Debug and Current setup information stuff    +++++++++++++++++++++++++++++
   Serial.println(F("---------------------- LOCO Setup   -----------------------"));
   Serial.print(F(  "          Short 'Locomotive Address' is"));
-  Serial.print (CV[1]);
+  Serial.println (MyLocoAddr);
   Serial.println();
   Serial.println(F("-------------------------- PORT Setup ---------------------"));
   Loco_motor_servo_demand = 90;
@@ -244,9 +243,16 @@ void setup() {
        CV[1]= _Force_Loco_Addr;
 #endif
 
-  MyLocoLAddr = CV[18] + ((CV[17] & 0x3F) * 256);
-  MyLocoAddr = CV[1]; ///
-
+ 
+  //MyLocoAddr = CV[1]; ///
+   MyLocoAddr=CV[1];
+    if bitRead( CV[29],5){MyLocoAddr = CV[18] + (((CV[17]&63) * 256));}
+   #ifdef  _Force_Loco_Addr
+       MyLocoAddr= _Force_Loco_Addr;
+       CV[1]=_Force_Loco_Addr;
+       CV[17]=0;
+       CV[18]=0;
+#endif 
   CV[8] = 0x0D; // DIY MFR code
   CV[7] = SW_REV; //ver
 
@@ -425,12 +431,24 @@ void loop() {
     delay(50);
     // +++++++++  Set up other things that may have been changed...+++++++++
     RocNodeID = getTwoBytesFromMessageHL(RN, 1);
+    //MyLocoAddr=CV[1];
+    //MyLocoAddr = CV[18] + ((192-(CV[17]) * 256));
+    MyLocoAddr=CV[1];
+    if bitRead( CV[29],5){MyLocoAddr = CV[18] + (((CV[17]&63) * 256));}
+       #ifdef  _Force_Loco_Addr
+       MyLocoAddr= _Force_Loco_Addr;
+       CV[1]=_Force_Loco_Addr;
+       CV[17]=0;
+       CV[18]=0;
+#endif 
+    Serial.println(F("---------------------- LOCO Setup   -----------------------"));
+    Serial.print(F(  "          'Locomotive Address' is"));
+    Serial.println (MyLocoAddr);
 
 #ifdef _ForceRocnetNodeID_to_subIPL
   RocNodeID =subIPL;
 #endif
-    MyLocoLAddr = CV[18] + ((CV[17] & 0x3F) * 256);
-    MyLocoAddr = CV[1];
+
                                                         }
   // +++++++++++END commit to EPROM
 //periodic updates and checks
