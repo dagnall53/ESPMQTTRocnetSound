@@ -262,15 +262,17 @@ void reconnect() {
       */
      
      // delay(100);
-
        EPROM_Write_Delay = millis();
-     
+    
     } else {
       //Serial.print(" failed, rc=");
       //Serial.print(client.state()); 
      // 
      connects=connects+1;
-    if (connects>=5){  mosquitto[3] = mosquitto[3]+1;
+    if (connects>=5){  mosquitto[3] = mosquitto[3]+1; 
+    #ifdef myBrokerSubip; 
+      mosquitto[3]= myBrokerSubip  //change to set  myBrokerSubip as your broker last ip address (defined in secrets)..
+    #endif
     if (mosquitto[3]>=50){mosquitto[3]=3;}   }   // limit mqtt broker to 3-50 to save scan time
     delay(100);
     client.setServer(mosquitto, 1883);   // Hard set port at 1833

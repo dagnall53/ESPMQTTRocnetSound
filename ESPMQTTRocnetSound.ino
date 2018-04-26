@@ -113,10 +113,12 @@ void Status(){
   wifiaddr = ipBroad[3];
   ConnectionPrint();
   ipBroad[3] = 255; //Set broadcast to local broadcast ip e.g. 192.168.0.255 // used in udp version of this program
- 
- //   ++++++++++ MQTT setup stuff   +++++++++++++++++++++
+  //   ++++++++++ MQTT setup stuff   +++++++++++++++++++++
   mosquitto[0] = ipBroad[0]; mosquitto[1] = ipBroad[1]; mosquitto[2] = ipBroad[2];
-  mosquitto[3] = RN[14];                //saved mosquitto address, where the broker is! saved as RN[14], 
+  mosquitto[3] = RN[14];                //saved mosquitto address, where the broker is! saved as RN[14],
+  #ifdef myBrokerSubip; 
+      mosquitto[3]= myBrokerSubip  //change to set  myBrokerSubip as your broker last ip address..(defined in secrets)..
+  #endif
   Serial.print(F(" Mosquitto will first try to connect to:"));
   Serial.println(mosquitto);
   MQTT_Setup();
@@ -144,9 +146,6 @@ void Status(){
   Serial.println();
   Serial.println(F("-------------------------- PORT Setup ---------------------"));
   Loco_motor_servo_demand = 90;
- // pinMode(NodeMCUPinD[BACKLight], OUTPUT);   // see Globals line 90 for these settings
- // pinMode(NodeMCUPinD[FRONTLight], OUTPUT);
- // pinMode(NodeMCUPinD[SignalLed], OUTPUT);  //
  digitalWrite (NodeMCUPinD[FRONTLight], 1);  //Turn off direction lights
  digitalWrite (NodeMCUPinD[BACKLight], 1); //Turn off direction lights
 #endif
@@ -207,9 +206,14 @@ void setup() {
   Data_Updated = false;
   EEPROM.begin(1024);
 
-  if ((EEPROM.read(255) == 0xFF) && (EEPROM.read(256) == 0xFF)) { //eeprom empty, first run. Can also set via CV[8]=8
+  if ((EEPROM.read(255) == 0xFF) && (EEPROM.read(256) == 0xFF)) { //eeprom is empty, first run. Can also set via CV[8]=8
     Serial.println(" ******* EPROM EMPTY....Setting Default EEPROM values *****");
     SetDefaultSVs();
+    CV[1]=3; // set initial loco address as 3 (whatever  the setdefaults function says)
+    #ifdef  _Force_Loco_Addr
+      CV[1]= _Force_Loco_Addr;
+    #endif
+    SetWordIn_msg_loc_value(RN,1,subIPL); // sets initial RocNode address as the subip to prevent clashes
     WriteEEPROM();
     EPROM_Write_Delay = millis() + Ten_Sec;
     EEPROM.commit();
@@ -217,6 +221,8 @@ void setup() {
   } 
   #ifdef _ForceDefaultEEPROM
     SetDefaultSVs();
+    CV[1]=3; // set initial loco address as 3 (whatever  the setdefaults function says)
+    SetWordIn_msg_loc_value(RN,1,subIPL); // sets initial RocNode address as the subip to prevent clashes
     #ifdef  _Force_Loco_Addr
       CV[1]= _Force_Loco_Addr;
     #endif
@@ -239,19 +245,18 @@ void setup() {
   #endif
   PortSetupReport();  //make any port direction changes.
   ImmediateStop(); // stop motor as soon as ports set up
+
+
 #ifdef  _Force_Loco_Addr
        CV[1]= _Force_Loco_Addr;
-#endif
-
- 
-  //MyLocoAddr = CV[1]; ///
-   MyLocoAddr=CV[1];
-    if bitRead( CV[29],5){MyLocoAddr = CV[18] + (((CV[17]&63) * 256));}
-   #ifdef  _Force_Loco_Addr
+#endif 
+     MyLocoAddr=CV[1]; // short address
+    if bitRead( CV[29],5){MyLocoAddr = CV[18] + (((CV[17]&63) * 256));} //long address
+   #ifdef  _Force_Loco_Addr   // can only force short addresses
        MyLocoAddr= _Force_Loco_Addr;
        CV[1]=_Force_Loco_Addr;
-       CV[17]=0;
-       CV[18]=0;
+       CV[17]=0;  // need to set these to forced loco address??
+       CV[18]=_Force_Loco_Addr; //??
 #endif 
   CV[8] = 0x0D; // DIY MFR code
   CV[7] = SW_REV; //ver
@@ -293,7 +298,7 @@ void setup() {
     PortTimingDelay[i] = millis();
     ServoOff_Delay_Until[i] = millis() + 10000;
   }
-//#ifdef _AudioDAC  
+//#ifdef _AudioNoDAC  // test to see if we can reuse the LRC pin after it has been defined for audionoDAC
 //digitalWrite (NodeMCUPinD[I2SDAC_LRC], LOW) ;  /// turn off blue light? (unless needed!)
 //#endif
   
@@ -317,7 +322,7 @@ void setup() {
   // Serial.println("------------------------ Starting main loop ---------------");
   FlashMessage(" ----------Entering Main Loop----------  ", 5, 150, 150);
      PrintTime("Start");
-   CV[47]=131; //Becoming obsolete, I am not using this feature now, but may have left some in Defaults to showing MQQT messages,Serial messages and the D4 lightflashing at loop frequency (approximates to "On" when working!...
+   CV[47]=131; //Becoming obsolete, I am not using this feature now, but there are some message shows that still use this to show MQQT messages,Serial messages and the D4 lightflashing at loop frequency (approximates to "On" when working!...
    for (int i = 0 ; i <= 8; i++) { // set servo stuff to a default.
     SDelay[i] = 1000;
     SDemand[i] = 90;
@@ -337,7 +342,7 @@ void setup() {
 
 
  /////FTP Setup, ensure SPIFFS is started before ftp;  /////////
-#ifdef ESP32       //esp32 we send true to format spiffs if cannot mount
+#ifdef ESP32       //esp32 we send true to format spiffs if cannot mount //NOT TESTED!
   if (SPIFFS.begin(true)) {
 #elif defined ESP8266
   if (SPIFFS.begin()) {
@@ -439,7 +444,7 @@ void loop() {
        MyLocoAddr= _Force_Loco_Addr;
        CV[1]=_Force_Loco_Addr;
        CV[17]=0;
-       CV[18]=0;
+       CV[18]=_Force_Loco_Addr;
 #endif 
     Serial.println(F("---------------------- LOCO Setup   -----------------------"));
     Serial.print(F(  "          'Locomotive Address' is"));
