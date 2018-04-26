@@ -12,7 +12,7 @@ The interface is designed to be used as a Node in a RocRail http://wiki.rocrail.
 
 The code should compile and set up as a loco with an address of 8 (say) initially set by "#define "Force_Loco_Addr 3", and an Rocnode that will be dependant on your router (if you use #define "ForceRocnetNodeID_to_subIPL"). Look at the serial terminal to see how the code is setting istself up!.
 The MQTT stuff will search for a MQTT broker from 192.168.0.3 to 192.168.0.50. The code is not set up for passwords, but this could be added. This search range can be changed in MQTT:reconnect (MQTT.cpp line 269). 
-If you want to "fix" the broker address, set the sub ip at line 120 of the .ino and line 274 of MQTT.cpp by decommenting the code nd entering your brokersubip.
+To set to a single address, set the #define myBrokerSubip in secrets and then the code at line 120 of the .ino and line 274 of MQTT.cpp should force the broker to a single address and prevent it "hunting". 
 
 I use Mosquitto on the same PC that runs Rocrail (note that RocRail will need the MQTT address explicitly in its controller setup).  
 
@@ -121,6 +121,8 @@ My experience is that the PWM allows better slow speed control, but lower top sp
     
 The Chuff period computation uses the speed demand as an assumed MPH value to produce a "ChuffPeriod" that is used to trigger chuffs. ChuffPeriod is set in 'Chuff.cpp" line 73 onwards. . Line 69 has SetChuffPeriod(2590/MotorSpeed); By changing the constant "2590" in that location, the chuff to wheel rotation rate can be altered to get best effect for your loco. 
 Using a wheel mounted sensor (not yet implemented) may be necessary for preciscion control.
+
+F0 switches the lights on / off.
     
 ## "Stationary" interface   
 IF not set as Loco, the code allows full Rocrail control over D1 to D8 ports. The default settings give a set of defaults derived from a saved eprom set for a station.
