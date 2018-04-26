@@ -10,8 +10,9 @@ When the code is compiled as a "LOCO" decoder (By including the #define "loco_Se
 
 The interface is designed to be used as a Node in a RocRail http://wiki.rocrail.net/doku.php controlled model railway and uses the RocNet (http://wiki.rocrail.net/doku.php?id=rocnet:rocnet-prot-en) protocol with an MQTT interface using the PubSubClient https://github.com/knolleary/pubsubclient. 
 
-The code should compile and set up as a loco with an address of 8 (say) initially set by "#define "Force_Loco_Addr 8", and an Rocnode that will be dependant on your router (if you use #define "ForceRocnetNodeID_to_subIPL"). Look at the serial terminal to see how the code is setting istself up!.
-The MQTT stuff will search for a MQTT broker from 192.168.0.3 to 192.168.0.50. The code is not set up for passwords, but this could be added. This search range can be changed in MQTT:reconnect (MQTT.cpp line 269).
+The code should compile and set up as a loco with an address of 8 (say) initially set by "#define "Force_Loco_Addr 3", and an Rocnode that will be dependant on your router (if you use #define "ForceRocnetNodeID_to_subIPL"). Look at the serial terminal to see how the code is setting istself up!.
+The MQTT stuff will search for a MQTT broker from 192.168.0.3 to 192.168.0.50. The code is not set up for passwords, but this could be added. This search range can be changed in MQTT:reconnect (MQTT.cpp line 269). 
+If you want to "fix" the broker address, set the sub ip at line 120 of the .ino and line 274 of MQTT.cpp by decommenting the code nd entering your brokersubip.
 
 I use Mosquitto on the same PC that runs Rocrail (note that RocRail will need the MQTT address explicitly in its controller setup).  
 
