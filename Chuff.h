@@ -1,10 +1,9 @@
 #ifndef Chuff_h 
  #define Chuff_h
  
-
   #include <Arduino.h> //needed 
   #define _AudioDebug
-//  #include "Globals.h";
+
   
 
 void SetChuffPeriod(long Setting);
