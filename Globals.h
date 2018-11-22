@@ -1,6 +1,7 @@
 #ifndef _globals_h
   #define _globals_h
-
+  
+uint16_t SW_REV = 21; 
 
 /* PIN References... Also defined somewhere else in the esp included code so do not unhide this section!!!...
   static const uint8_t D0   = 16;  and Red Led on NodeMcu V2 (not present on NodeMCU v3)
@@ -22,7 +23,7 @@
 
 // stuff for ssid reset
 boolean  ResetWiFi;
-uint16_t SW_REV = 15;   
+  
 
 //// Debug settings
 #define _SERIAL_DEBUG  1

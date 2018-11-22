@@ -23,8 +23,8 @@ PubSubClient client(espClient); in MQTT now
 #include <Servo.h>
 #include <EEPROM.h>
 
-// adding FTP support!
-#include <ESP8266FtpServer.h>
+// adding FTP support!//https://github.com/nailbuster/esp8266FTPServer
+#include <ESP8266FtpServer.h> 
 
 FtpServer ftpSrv;   //set #define FTP_DEBUG in ESP8266FtpServer.h to see ftp verbose on serial
 //FTP support
@@ -80,7 +80,19 @@ void Status(){
 
   Serial.println();Serial.println();
   Serial.println(F("-----------------------------------------------------------"));
-  Serial.println(F("             ESP8266 MQTT Rocnet Node with Sound    ")); 
+#ifdef _LOCO_SERVO_Driven_Port
+#ifdef _Audio
+  Serial.println(F("             ESP8266 MQTT Rocnet Loco decoder with Sound    ")); 
+  #else 
+  Serial.println(F("             ESP8266 MQTT Rocnet Loco decoder     ")); 
+  #endif
+#else
+  #ifdef _Audio
+  Serial.println(F("             ESP8266 MQTT Rocnet Static Node with Sound    ")); 
+  #else 
+  Serial.println(F("             ESP8266 MQTT Rocnet Static Node     ")); 
+  #endif
+#endif  
   Serial.println(F("-----------------------------------------------------------"));
   Serial.print(F(  "                    revision:"));
   Serial.print(SW_REV); Serial.println();
@@ -115,9 +127,9 @@ void Status(){
   ipBroad[3] = 255; //Set broadcast to local broadcast ip e.g. 192.168.0.255 // used in udp version of this program
   //   ++++++++++ MQTT setup stuff   +++++++++++++++++++++
   mosquitto[0] = ipBroad[0]; mosquitto[1] = ipBroad[1]; mosquitto[2] = ipBroad[2];
-  mosquitto[3] = RN[14];                //saved mosquitto address, where the broker is! saved as RN[14],
+  mosquitto[3] = RN[14];                //saved mosquitto address, where the (lowest address) broker is! saved as RN[14], will loop through 18-5 to find one
   #ifdef myBrokerSubip; 
-      mosquitto[3]= myBrokerSubip  //change to set  myBrokerSubip as your broker last ip address..(defined in secrets)..
+      mosquitto[3]= myBrokerSubip  //change to force  myBrokerSubip as your broker ip address..(defined in secrets.h)..
   #endif
   Serial.print(F(" Mosquitto will first try to connect to:"));
   Serial.println(mosquitto);
