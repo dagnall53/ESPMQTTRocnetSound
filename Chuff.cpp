@@ -1,13 +1,14 @@
 
-
 #include "Chuff.h"
+#include "Directives.h";
 
-
+#ifdef _Audio
   #include "AudioFileSourceSPIFFS.h"
   #include "AudioGeneratorWAV.h"
   #include "AudioOutputMixer.h"
-  
-#include "Directives.h";
+#endif 
+
+
 #ifdef _AudioDAC
   #include "AudioOutputI2SDAC.h"
 #endif
@@ -16,9 +17,13 @@
   #endif 
 
 
-
+#ifdef _Audio
 AudioGeneratorWAV *wav[2];
 AudioFileSourceSPIFFS *file[2];
+AudioOutputMixer *mixer;
+AudioOutputMixerStub *stub[2];
+#endif
+
 #ifdef _AudioDAC
   AudioOutputI2SDAC *out;
 #endif
@@ -26,8 +31,7 @@ AudioFileSourceSPIFFS *file[2];
   AudioOutputI2SNoDAC *out;
 #endif
 
-AudioOutputMixer *mixer;
-AudioOutputMixerStub *stub[2];
+
 
 
 int ChuffCycle;  
@@ -137,7 +141,7 @@ CV[111]=127; // volume for Brake Squeal
 }
 
 void BeginPlay(int Channel,const char *wavfilename, uint8_t CVVolume){
-
+#ifdef _Audio
  float Volume;
  Volume=(float)CVVolume*CV[100]/16384;
  
@@ -163,10 +167,10 @@ void BeginPlay(int Channel,const char *wavfilename, uint8_t CVVolume){
   Serial.print(wavfilename);  
   Serial.printf("> at volume :");
   Serial.println(Volume);}
-
+#endif
 }
 void BeginPlayND(int Channel,const char *wavfilename, uint8_t CVVolume){ // no deletes version
-
+#ifdef _Audio
   uint32_t NOW;
   NOW=micros();
   float Volume;
@@ -194,7 +198,7 @@ void BeginPlayND(int Channel,const char *wavfilename, uint8_t CVVolume){ // no d
   Serial.print(wavfilename);  
   Serial.printf("> at volume :");
   Serial.println(Volume);
-
+#endif
 }
 
 
@@ -239,6 +243,7 @@ void Chuff (String ChuffChoice){
 }
 
 void AudioLoop(int32_t TimeNow){
+#ifdef _Audio
    
  #ifdef SteamOutputPin
               if ((SteamOnStarted+SteamPulseDuration)<=TimeNow){digitalWrite (NodeMCUPinD[SteamOutputPin],LOW);}
@@ -251,6 +256,7 @@ void AudioLoop(int32_t TimeNow){
   if (wav[1]->isRunning()) {
       if (!wav[1]->loop()) { Serial.printf("S1\n");wav[1]->stop(); stub[1]->stop();PlayingSoundEffect=false;}// Running[1]=false;Serial.printf("stopping 1\n");}
                            }
+ #endif
  }
              
   bool SoundEffectPlaying(void){
