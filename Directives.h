@@ -5,26 +5,29 @@
 #define SignalON LOW  // defined so I can change the "phase of the SignalLED" easily.
 #define SignalOFF HIGH
 
-//#define _LOCO_SERVO_Driven_Port 1  // if using as mobile (LOCO) node.. node becomes a loco with servo on port D "1"  for motor control
-//#define _LocoPWMDirPort  3         // add this second Port if using PWM loco motor control assumes L293 inputs driven from port D(_LOCO_SERVO_Driven_Port) and D(_LocoPWMDirPort)
+//------- Set at Mobile or Static node--
+// Defaults to "Static node with 8 programmablei/o unless the node is a mobile (Loco) Decoder
+//#define _LOCO_SERVO_Driven_Port 1  // if using as mobile (LOCO) node.. node becomes a loco decoder with servo on port D "1"  for motor control
+//#define _LocoPWMDirPort  3         // add this second Port if using PWM loco motor control (not servo speed control) 
+                                     //This assumes L293 (or similar) inputs driven from ports D(_LOCO_SERVO_Driven_Port) and D(_LocoPWMDirPort)
                                      //
-// assume if a loco then you need front and back lights...
-#ifdef _LOCO_SERVO_Driven_Port
-  #define BACKLight 2  // NodeMCU D2
-  #define FRONTLight 5 // NodeMCU D5
-//  #define SteamOutputPin 6
-#endif
+                                     // assume if a loco then you need front and back lights...
+                                     #ifdef _LOCO_SERVO_Driven_Port
+                                       #define BACKLight 2  // NodeMCU D2
+                                       #define FRONTLight 5 // NodeMCU D5
+                                     //#define SteamOutputPin 6     // NodeMCU D6 will be used later as steam chuff or speed sensor (not implemented yet)
+                                     #endif
 
 
-//#define _DefaultPrintOut 1 // for printing the defaults on eprom save so you can save them in the RocSubs:SetDefaultSVs() function 
+// #define _DefaultPrintOut 1 // for printing the defaults on eprom save so you can save them in the RocSubs:SetDefaultSVs() function 
 // #define _Use_Wifi_Manager // uncomment this to use a "standard" fixed SSID and Password
 
-//---------------AUDIO--------------------
-
+// ---------------AUDIO--------------------
+// ---  select one of these to use Audio (To give Loco sounds)
 //#define _AudioDAC  // to use Earle F Philhowers's audio libraries and I2C dac for audio 
 //#define _AudioNoDAC  //  to use Earle F Philhowers's audio libraries and his clever single transistor 1 bit oversampling dac for audio 
 
-//--- These are set depending on the two defines above..
+//--- These audio directives are set depending on the two defines above..
 // I could probably be cleverer with this set!! but they work
 #ifdef _AudioNoDAC
 #define _Audio 1 // sets some common audio compiler stuff
