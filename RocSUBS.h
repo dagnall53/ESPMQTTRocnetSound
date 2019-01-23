@@ -8,12 +8,12 @@ boolean  PingReflected;
 #define NumberOfPorts  8
 
 
-uint8_t Value_for_PortD[NumberOfPorts + 1]; // ignore [0] so we can have 1...8
+uint8_t Value_for_PortD[NumberOfPorts + 1]; //ignore [0] so we can have 1...8
 uint8_t Pi02_Port_Settings_D[NumberOfPorts + 1];
 uint8_t DelaySetting_for_PortD[NumberOfPorts + 1];
 uint8_t Configuration_for_PortD[NumberOfPorts + 1];
 uint8_t EventMarker_for_PortD[NumberOfPorts + 1];
-uint8_t ID_High_for_PortD[NumberOfPorts + 1]; // idh
+uint8_t ID_High_for_PortD[NumberOfPorts + 1]; //idh
 uint8_t ID_Low_for_PortD[NumberOfPorts + 1]; //idl
 uint8_t XRef_Port[NumberOfPorts + 1];
 uint8_t Pi03_Setting_offposH[NumberOfPorts + 1];
@@ -29,13 +29,15 @@ uint32_t Pi03_Setting_LastUpdated[NumberOfPorts + 1];
 extern void SERVOS(void);
 extern uint16_t servoLR(int state, int port);
 extern int FlashHL(int state, int port);
+extern bool IsServo(uint8_t index);
+extern bool IsPWM(uint8_t index);
 uint8_t Speed_demand ;
 uint8_t Last_Speed_demand;
 uint8_t DIRF = 0 ;
 
 
-#define Recipient_Addr  1   //  use with SetWordIn_msg_loc_value(sendMessage,Recipient_Addr,data  , or get sender or recipient addr  
-#define Sender_Addr 3       //  use with SetWordIn_msg_loc_value(sendMessage,Sender_Addr,data   
+#define Recipient_Addr  1   //use with SetWordIn_msg_loc_value(sendMessage,Recipient_Addr,data  , or get sender or recipient addr  
+#define Sender_Addr 3       //use with SetWordIn_msg_loc_value(sendMessage,Sender_Addr,data   
 #define Code_Request 0<<5
 #define Code_Event   1<<5
 #define Code_Reply   2<<5
@@ -44,8 +46,8 @@ uint8_t DIRF = 0 ;
 uint8_t ROC_netid;
 uint16_t ROC_recipient;
 uint16_t ROC_sender;
-uint8_t  ROC_group;
-uint8_t  ROC_code;
+uint8_t ROC_group;
+uint8_t ROC_code;
 uint8_t ROC_len;
 uint8_t ROC_Data[200];
 uint8_t ROC_OUT_DATA[200];
@@ -68,7 +70,7 @@ Pi02_Port_Settings_D[i]=0; //0= out 1= in
 DelaySetting_for_PortD[i]=0;//10ms units, max. 255 * 10.
 Configuration_for_PortD[i]=1;
 EventMarker_for_PortD[i]=0;
-ID_High_for_PortD[i]=0;  // idh
+ID_High_for_PortD[i]=0;  //idh
 ID_Low_for_PortD[i]=0;  //idl
 XRef_Port[i]=0;
 Pi03_Setting_offposH[i]=0; 
@@ -82,12 +84,12 @@ Pi03_Setting_LastUpdated[i]=0;
   }
 
   
-#ifndef _LOCO_SERVO_Driven_Port {  
- // a set of defaults derived from a saved emprom set...for a station
- // This set sets 1-4 as pwm outputs 
- //     ( BUT use only 1 and 2 with the motor board for lights (to gnd) on outputs 2 and 4 due to strange DebugMsg logic in motor driver)
- // 5 AND 6 are sensor inputs for using with hall switches
- // 7 and 8 are servo outputs for points.
+#ifndef _LOCO_SERVO_Driven_Port   
+ //a set of defaults derived from a saved emprom set...for a station
+ //This set sets 1-4 as pwm outputs 
+ //( BUT use only 1 and 2 with the motor board for lights (to gnd) on outputs 2 and 4 due to strange DebugMsg logic in motor driver)
+ //5 AND 6 are sensor inputs for using with hall switches
+ //7 and 8 are servo outputs for points.
  
  Value_for_PortD[1]=0;
  Pi02_Port_Settings_D[1]=0;
@@ -219,20 +221,19 @@ Pi03_Setting_LastUpdated[i]=0;
  Pi03_Setting_LastUpdated[8]=6184;
 
  CV[1]=3; //DEFAULT ADDR
- CV[47]=131; //(send serial and MQTT debug messages, have d4 flash at the loop rate (shows if something stops....)
- CV[2]=10; //V START
- CV[3]=5; //ACC
- CV[4]=5;  // DEC RATE
- CV[5]=100;  // HIGH SPEED
- CV[6]=50;  // MID but not used at the moment
+ CV[2]=5; //V START
+ CV[3]=2; //ACC
+ CV[4]=2;  //DEC RATE
+ CV[5]=10;  //HIGH SPEED Multiplier for servo position
+ CV[6]=5;  //MID but not used at the moment
 #endif 
     
-// end of defaults for station
+//end of defaults for station
 
 #ifdef _LOCO_SERVO_Driven_Port
 
-// This set is for a Loco (dcc address 3) with Audio
- // ------Current EEPROM Settings----------
+//This set is for a Loco (dcc address 3) with Audio
+ //------Current EEPROM Settings----------
  Value_for_PortD[1]=0;
  Pi02_Port_Settings_D[1]=0;
  DelaySetting_for_PortD[1]=0;
@@ -361,7 +362,7 @@ Pi03_Setting_LastUpdated[i]=0;
  Pi03_Setting_onsteps[8]=1;
  Pi03_Setting_options[8]=0;
  Pi03_Setting_LastUpdated[8]=18054;
- // RN and CV settings
+ //RN and CV settings
  RN[0]=0;
  CV[0]=0;
  RN[1]=0;
@@ -457,7 +458,7 @@ Pi03_Setting_LastUpdated[i]=0;
  RN[46]=10;
  CV[46]=0;
  RN[47]=0;
- CV[47]=131;
+ CV[47]=0;
  RN[48]=0;
  CV[48]=0;
  RN[49]=0;
@@ -874,7 +875,17 @@ Pi03_Setting_LastUpdated[i]=0;
  CV[254]=0;
  RN[255]=0;
  CV[255]=0;
-// end of saved set of values 
+// override ones above...Simpler just to put these here...
+ CV[1]=3; //DEFAULT ADDR
+ CV[2]=5; //V START
+ CV[3]=2; //ACC
+ CV[4]=2;  //DEC RATE
+ CV[5]=10;  //HIGH SPEED Multiplier for servo position
+ CV[6]=5;  //MID but not used at the moment
+
+
+ 
+//end of saved set of values 
 #endif
 
 
@@ -896,61 +907,61 @@ return Nickname;
 void WriteEEPROM() {
   RN[14] = mosquitto[3];
 #ifdef _DefaultPrintOut 
-  // code to serial print eprom settings in a form that can be used in SetDefaultSVs() 
+  //code to serial print eprom settings in a form that can be used in SetDefaultSVs() 
     
   Serial.println(" ------Current EEPROM Settings----------");
     
   for (int i = 1; i <= NumberOfPorts; i++) {
      
     
-Serial.print(" Value_for_PortD[");
-Serial.print(i);
-Serial.print("]=");
-Serial.print(Value_for_PortD[i]);Serial.println(";");
-Serial.print(" Pi02_Port_Settings_D[");
-Serial.print(i);
-Serial.print("]=");
-Serial.print(Pi02_Port_Settings_D[i]);Serial.println(";");
-Serial.print(" DelaySetting_for_PortD[");
-Serial.print(i);
-Serial.print("]=");
-Serial.print(DelaySetting_for_PortD[i]);  Serial.println(";");  
-Serial.print(" Configuration_for_PortD[");
-Serial.print(i);
-Serial.print("]=");
-Serial.print(Configuration_for_PortD[i]);Serial.println(";");
-Serial.print(" EventMarker_for_PortD[");
-Serial.print(i);
-Serial.print("]=");
-Serial.print(EventMarker_for_PortD[i]);Serial.println(";");
-Serial.print(" ID_High_for_PortD[");
-Serial.print(i);
-Serial.print("]=");
-Serial.print(ID_High_for_PortD[i]);Serial.println(";");
-Serial.print(" ID_Low_for_PortD[");
-Serial.print(i);
-Serial.print("]=");
-Serial.print(ID_Low_for_PortD[i]);Serial.println(";");
-Serial.print(" XRef_Port[");
-Serial.print(i);
-Serial.print("]=");
-Serial.print(XRef_Port[i]);Serial.println(";");
-Serial.print(" Pi03_Setting_offposH[");
-Serial.print(i);
-Serial.print("]=");
-Serial.print(Pi03_Setting_offposH[i]);Serial.println(";");
-Serial.print(" Pi03_Setting_offposL[");
-Serial.print(i);
-Serial.print("]=");
-Serial.print(Pi03_Setting_offposL[i]);Serial.println(";");
-Serial.print(" Pi03_Setting_onposH[");
-Serial.print(i);
-Serial.print("]=");
-Serial.print(Pi03_Setting_onposH[i]);Serial.println(";");
-Serial.print(" Pi03_Setting_onposL[");
-Serial.print(i);
-Serial.print("]=");
-Serial.print(Pi03_Setting_onposL[i]);Serial.println(";");
+  Serial.print(" Value_for_PortD[");
+  Serial.print(i);
+  Serial.print("]=");
+  Serial.print(Value_for_PortD[i]);Serial.println(";");
+  Serial.print(" Pi02_Port_Settings_D[");
+  Serial.print(i);
+  Serial.print("]=");
+  Serial.print(Pi02_Port_Settings_D[i]);Serial.println(";");
+  Serial.print(" DelaySetting_for_PortD[");
+  Serial.print(i);
+  Serial.print("]=");
+  Serial.print(DelaySetting_for_PortD[i]);  Serial.println(";");  
+  Serial.print(" Configuration_for_PortD[");
+  Serial.print(i);
+  Serial.print("]=");
+  Serial.print(Configuration_for_PortD[i]);Serial.println(";");
+  Serial.print(" EventMarker_for_PortD[");
+  Serial.print(i);
+  Serial.print("]=");
+  Serial.print(EventMarker_for_PortD[i]);Serial.println(";");
+  Serial.print(" ID_High_for_PortD[");
+  Serial.print(i);
+  Serial.print("]=");
+  Serial.print(ID_High_for_PortD[i]);Serial.println(";");
+  Serial.print(" ID_Low_for_PortD[");
+  Serial.print(i);
+  Serial.print("]=");
+  Serial.print(ID_Low_for_PortD[i]);Serial.println(";");
+  Serial.print(" XRef_Port[");
+  Serial.print(i);
+  Serial.print("]=");
+  Serial.print(XRef_Port[i]);Serial.println(";");
+  Serial.print(" Pi03_Setting_offposH[");
+  Serial.print(i);
+  Serial.print("]=");
+  Serial.print(Pi03_Setting_offposH[i]);Serial.println(";");
+  Serial.print(" Pi03_Setting_offposL[");
+  Serial.print(i);
+  Serial.print("]=");
+  Serial.print(Pi03_Setting_offposL[i]);Serial.println(";");
+  Serial.print(" Pi03_Setting_onposH[");
+  Serial.print(i);
+  Serial.print("]=");
+  Serial.print(Pi03_Setting_onposH[i]);Serial.println(";");
+  Serial.print(" Pi03_Setting_onposL[");
+  Serial.print(i);
+  Serial.print("]=");
+  Serial.print(Pi03_Setting_onposL[i]);Serial.println(";");
 Serial.print(" Pi03_Setting_offsteps[");
 Serial.print(i);
 Serial.print("]=");
@@ -968,7 +979,7 @@ Serial.print(i);
 Serial.print("]=");
 Serial.print(Pi03_Setting_LastUpdated[i]);Serial.println(";");
     }
-Serial.println(" // RN and CV settings");
+Serial.println(" //RN and CV settings");
 for (int i = 0; i <= 255 ; i++) {
   Serial.print(" RN[");
 Serial.print(i);
@@ -981,10 +992,10 @@ Serial.print(CV[i]);Serial.println(";");
    
   }
     
-Serial.println("// end of defaults ");
+  Serial.println("//end of defaults ");
 
 #endif
-// need list of what RN[0 to 19 are...
+//need list of what RN[0 to 19 are...
 
 //
 
@@ -996,7 +1007,7 @@ Serial.println("// end of defaults ");
     RN[40 + i] = DelaySetting_for_PortD[i];
     RN[50 + i] = Configuration_for_PortD[i];
     RN[60 + i] = EventMarker_for_PortD[i];
-    RN[70 + i] = ID_High_for_PortD[i]; // idh
+    RN[70 + i] = ID_High_for_PortD[i]; //idh
     RN[80 + i] = ID_Low_for_PortD[i]; //idl
     RN[90 + i] = XRef_Port[i];
 
@@ -1029,40 +1040,37 @@ void ReadEEPROM() {
   /*
     Serial.print(" EEProm Reading ");//
     for (int p=0; p <= 20 ;p++){
-                                  Serial.print("RN[");// limit to 6 char
+                                  Serial.print("RN[");//limit to 6 char
                                   Serial.print(p);
                                   Serial.print("] =:");
                                   Serial.print(RN[p]);    }
                                   Serial.println(" ");
   */
 
-    // Nickname, length RN[3] ESP is default
-       Nickname="                   ";
-         
+       //Nickname, length RN[3] ESP is default
+       for (int i = 1 ;  i <= 30; i++) { Nickname[i] =char(0);}   
           Serial.println("--------------------------------------");
-          // Serial.print(" EEPROM Read: This Node Nickname is:");
-         //   Serial.print(RN[3]);
-          //  Serial.print(" chars :'");   
-             for (int i = 1 ;  i <= RN[3]; i++) {
+          //Serial.print(" EEPROM Read: This Node Nickname is:");
+          for (int i = 1 ;  i <= RN[3]; i++) {
                     Nickname[i-1] = char(RN[3 + i]);
                     }
-                    Nickname[RN[3]]=char(0);         //  add null to end string nickname, length RN[3] ESP is default
-                            // Serial.println("'");
-         // Serial.print("NICKNAME BUILT IS:");
-        //  Serial.println(Nickname);
+          Nickname[RN[3]]=char(0);         //add null to end string nickname, length RN[3] ESP is default
+          //Serial.println("'");
+          //Serial.print("NICKNAME BUILT IS:");
+          //Serial.println(Nickname);
           
   mosquitto[3] = RN[14];
   RocNodeID = getTwoBytesFromMessageHL(RN, 1);
-#ifdef _ForceRocnetNodeID_to_subIPL
-  RocNodeID =subIPL;
-#endif
+  #ifdef _ForceRocnetNodeID_to_subIPL
+    RocNodeID =subIPL;
+  #endif
   for (int i = 1; i <= NumberOfPorts; i++) {
     Value_for_PortD[i] = RN[20 + i];
     Pi02_Port_Settings_D[i] = RN[30 + i];
     DelaySetting_for_PortD[i] = RN[40 + i];
     Configuration_for_PortD[i] = RN[50 + i];
     EventMarker_for_PortD[i] = RN[60 + i];
-    ID_High_for_PortD[i] = RN[70 + i]; // idh
+    ID_High_for_PortD[i] = RN[70 + i]; //idh
     ID_Low_for_PortD[i] = RN[80 + i]; //idl
     XRef_Port[i] = RN[90 + i];
 
@@ -1077,7 +1085,7 @@ void ReadEEPROM() {
 }
 
 
-void  ROCSerialPrint(uint8_t *msg)   {
+void ROCSerialPrint(uint8_t *msg)   {
   Serial.print("NetId  RidH  RidL   SidH  SidL  Grp   Code  Len");
   for (byte i = 1; i <= (msg[7]); i++) {
     Serial.print("    D");
@@ -1109,7 +1117,7 @@ char*  Show_ROC_MSG() {
       strcat(DebugMessage, "Evt]:");
     }
     if ((ROC_code & 0x60) == 0x40) {
-      strcat(DebugMessage, "Rpy]:"); //// add request event reply then code.. (5 bits)
+      strcat(DebugMessage, "Rpy]:"); ////add request event reply then code.. (5 bits)
     }
     snprintf(DebugMessage, sizeof(DebugMessage), "%s%d", DebugMessage, (ROC_code & 0x1F));
     for (byte i = 1; i <= ROC_len; i++) {
@@ -1139,34 +1147,36 @@ void Show_ROC_MSGS(uint8_t *payload) {
 extern void SetMotorSpeed(uint8_t SpeedDemand,uint8_t dirf);
 extern uint8_t Speed_demand ;
 extern uint8_t Last_Speed_demand;
+
+
 void ROC_CS() { //group 1
   uint16_t CVNum;
   uint8_t OldValue;
   switch (ROC_code) {
-    case 0:  {}    // NOP
+    case 0:  {}    //NOP
       break;
     case 2:  {
         POWERON = ROC_Data[1];
         Serial.println();
         Serial.print(" Power set to:");
         Serial.println(POWERON);
-        sendMessage[8] = 0x00; // clear before doing anything later .....
+        sendMessage[8] = 0x00; //clear before doing anything later .....
         sendMessage[0] = ROC_netid;
-        SetWordIn_msg_loc_value(sendMessage, Recipient_Addr, 0x00 ); // response is to host, not cs
-        SetWordIn_msg_loc_value(sendMessage, Sender_Addr, RocNodeID ); // sent from the rocnode ?
+        SetWordIn_msg_loc_value(sendMessage, Recipient_Addr, 0x00 ); //response is to host, not cs
+        SetWordIn_msg_loc_value(sendMessage, Sender_Addr, RocNodeID ); //sent from the rocnode ?
         sendMessage[5] = ROC_group;
-        sendMessage[6] = ROC_code | Code_Reply; // action group, response
-        sendMessage[7] = 1;             // len of data coming next
-        bitWrite(sendMessage[8], 1, 1); // set 'Idle' ?
+        sendMessage[6] = ROC_code | Code_Reply; //action group, response
+        sendMessage[7] = 1;             //len of data coming next
+        bitWrite(sendMessage[8], 1, 1); //set 'Idle' ?
         bitWrite(sendMessage[8], 0, POWERON); //set bit 0 in status to power state
-        //     MQTTSend("rocnet/cs",sendMessage);        // sends status response something wrong with this
-        //     ROCSerialPrint(sendMessage);
+        //MQTTSend("rocnet/cs",sendMessage);        //sends status response something wrong with this
+        //ROCSerialPrint(sendMessage);
         Message_Decoded = true;
         if (POWERON == false) {
-                DebugMsgSend("debug", " NODE OFF ");
+                DebugSprintfMsgSend(sprintf(DebugMsg," NODE OFF "));
                   }
         if (POWERON == true) {
-                DebugMsgSend("debug", " NODE ON ");
+                DebugSprintfMsgSend(sprintf(DebugMsg," NODE ON "));
                 Last_Speed_demand=0;
                 SetMotorSpeed(Speed_demand,DIRF);
                 //DoLocoMotor();
@@ -1175,135 +1185,131 @@ void ROC_CS() { //group 1
       break;
     case 8:  {
         //Serial.print(" debug**Group 1, Code 8: ROC_Data[1]<");Serial.print(ROC_Data[1]);Serial.print(" >  ROC_Data[2]<");Serial.print(ROC_Data[2]); Serial.print(">  equates to address of:"); Serial.println ((ROC_Data[2] + (ROC_Data[1] * 256)));
+     #ifdef _LOCO_SERVO_Driven_Port
         if (((ROC_Data[2] + (ROC_Data[1] * 256)) == MyLocoAddr) || ((ROC_Data[2] == 0) && (ROC_Data[1] == 0))) {
-          if ((ROC_Data[2] + (ROC_Data[1] * 256)) == MyLocoAddr) {  
-            Serial.print(" Group 1, Code 8: CV change for this Loco ");
-          }
+       #ifdef _SERIAL_DEBUG  
+          if ((ROC_Data[2] + (ROC_Data[1] * 256)) == MyLocoAddr) { Serial.print(" Group 1, Code 8: CV change for this Loco ");
+                                                                  }else { Serial.print(" Group 1, Code 8: CV change for 0 0  ");}
+       #endif                                                           
           CVNum = ((ROC_Data[3] * 256) + ROC_Data[4]);
-          OldValue = CV[CVNum]; // get the old value
-          Message_Decoded = true; // we understand these even if they are not for us
-          if (ROC_Data[6] == 1) { // this is a SET CV
-
-// mqtt debug message
-    // moved...down     DebugSprintfMsgSend( sprintf ( DebugMsg, "Set CV[%d]=%d",CVNum,ROC_Data[5]));
-            
-            if (CVNum == 8) { // set defaults when CV8=13
+          OldValue = CV[CVNum]; //save the old value
+          Message_Decoded = true; //we understand these even if they are not for us
+          if (ROC_Data[6] == 1) { //this is a SET CV
+             if (CVNum == 8) {    //set defaults when CV8=13
               if ((ROC_Data[5] == 13)) {
                 Serial.print("Setting Defaults");
-                DebugMsgSend("debug", "Setting EEPROM defaults");
+                DebugSprintfMsgSend(sprintf(DebugMsg,"Setting EEPROM defaults"));
                 SetDefaultSVs();
                 Data_Updated = true;
                 WriteEEPROM();
-              }
-            }
-            else {   // Setting, but not setting defaults ONLY set if address is explicitly for me
+                                       }
+                            }
+            else {   //Setting, but not setting defaults ONLY set if address is explicitly for me
               if ((ROC_Data[2] + (ROC_Data[1] * 256)) == MyLocoAddr) { //only set if address is explicitly for me
-            // mqtt debug message
+                   //mqtt debug message
                    DebugSprintfMsgSend( sprintf ( DebugMsg, "Set CV[%d]=%d",CVNum,ROC_Data[5]));
               CV[CVNum] = ROC_Data[5]; //set the new data
               if (OldValue != ROC_Data[5]) {
-                WriteEEPROM();  // update EEPROM only if different
+                WriteEEPROM();  //update EEPROM only if different
                 Data_Updated = true;
                 WriteEEPROM();
-              }
-              }
+                                           }
+                                                                      }
             }
-            EPROM_Write_Delay = millis() + Ten_Sec; // update the time so you can press the same set and get another ten seconds delay
+            EPROM_Write_Delay = millis() + Ten_Sec; //update the time so you can press the same set and get another ten seconds delay
 
           } //set end
 
-          if (ROC_Data[6] == 0) { // get
+          if (ROC_Data[6] == 0) { //get
             CVNum = ((ROC_Data[3] * 256) + ROC_Data[4]);
-           // Serial.print(" Get  CV[");
-           // Serial.print(CVNum);
-           // Serial.print("] =");
-           // Serial.println(CV[CVNum]);
+           //Serial.print(" Get  CV[");
+           //Serial.print(CVNum);
+           //Serial.print("] =");
+           //Serial.println(CV[CVNum]);
            DebugSprintfMsgSend( sprintf ( DebugMsg, "Get CV[%d]=%d",CVNum,CV[CVNum]));
           } //get end
 
-          //     Serial.println("    Building and sending response"); Send response for both GET and SET...
-          // ----------------SEND CV Starts-----------------
+          //Serial.println("    Building and sending response"); Send response for both GET and SET...
+          //----------------SEND CV Starts-----------------
           sendMessage[0] = ROC_netid;
-          SetWordIn_msg_loc_value(sendMessage, Recipient_Addr, 0x00 ); // response is to host, not cs
-          SetWordIn_msg_loc_value(sendMessage, Sender_Addr, MyLocoAddr ); // ??sent from the loco not rocnodeid??
+          SetWordIn_msg_loc_value(sendMessage, Recipient_Addr, 0x00 ); //response is to host, not cs
+          SetWordIn_msg_loc_value(sendMessage, Sender_Addr, MyLocoAddr ); //??sent from the loco not rocnodeid??
           sendMessage[5] = ROC_group;
-          sendMessage[6] = ROC_code | Code_Reply; // action group, response
-          sendMessage[7] = 6;   // len of data coming next
-          SetWordIn_msg_loc_value(sendMessage, 8, MyLocoAddr); // set 8 and 9 with which loco I am
-          SetWordIn_msg_loc_value(sendMessage, 10, CVNum); // set 10 and 11 with the CV number
-          sendMessage[12] = CV[CVNum];     // the CV value
+          sendMessage[6] = ROC_code | Code_Reply; //action group, response
+          sendMessage[7] = 6;   //len of data coming next
+          SetWordIn_msg_loc_value(sendMessage, 8, MyLocoAddr); //set 8 and 9 with which loco I am
+          SetWordIn_msg_loc_value(sendMessage, 10, CVNum); //set 10 and 11 with the CV number
+          sendMessage[12] = CV[CVNum];     //the CV value
           sendMessage[13] = 1;  //set
-          if ((CV[47] & 0x20) == 0x20) {
+          
+         #ifdef _showRocMSGS
             Serial.print("Response:");
             Show_ROC_MSGS(sendMessage);
-          }
-          MQTTSend("rocnet/ht", sendMessage);  // HOST not cs??
+         #endif
+          
+          MQTTSend("rocnet/ht", sendMessage);  //HOST not cs??
           //------------SEND CV ENDS------------
-          //  Serial.println("------------ double check message content------------");
-          //  ROCSerialPrint(sendMessage);
-          //  Serial.println("-------------- end double check --------------");
+          //Serial.println("------------ double check message content------------");
+          //ROCSerialPrint(sendMessage);
+          //Serial.println("-------------- end double check --------------");
 
 
-        }  // end of if for this loco
+        }  //end of cv stuff if for this loco or 00
+     #endif //  _LOCO_SERVO_Driven_Port
         Message_Decoded = true;
-      } // end of this case
+      } //end of this case
       break;
 
 
   }
-}
+} // end of roc cs 
 extern boolean ButtonState[12] ;
 extern int lastButtonState[12];
-extern void  SetSoundEffect(uint8_t Data1,uint8_t Data2,uint8_t Data3);
+extern void SetSoundEffect(uint8_t Data1,uint8_t Data2,uint8_t Data3);
 extern void BeginPlay(int Channel,const char *wavfilename, uint8_t Volume);
 extern void SetMotorSpeed(uint8_t SpeedDemand,uint8_t dirf);
 
-void ROC_MOBILE() { // group 2
+void ROC_MOBILE() { //group 2
   switch (ROC_code) {
-    case 0:  {}    // NOP
+    case 0:  {}    //NOP
       break;
-    case 1:  {}    // setup
+    case 1:  {}    //setup
       break;
     case 2:  {
-        //      Serial.print("Local:");  Serial.print(CV[1]); Serial.print(" MSG for:");  Serial.print(ROC_recipient);
-        // set Velocity, direction , lights
-        Message_Decoded = true; // we understand these even if they are not for us
+        // Serial.print("Local:");  Serial.print(CV[1]); Serial.print(" MSG for:");  Serial.print(ROC_recipient);
+        //set Velocity, direction , lights
+        Message_Decoded = true; //we understand these even if they are not for us
 #ifdef _LOCO_SERVO_Driven_Port
         if (ROC_recipient == MyLocoAddr) { //data for me, do it!
-//          Serial.print (" Set Speed ");
-//          Serial.print( ROC_Data[1]);
-       //   Speed_demand = ROC_Data[1];  set direction etc in DIRF 
           bitWrite(DIRF, 5, ROC_Data[2]);
           bitWrite(DIRF, 4, ROC_Data[3]);
-          // Moved all loco stuff from here to SetMotorSpeed 
-          DebugSprintfMsgSend( sprintf ( DebugMsg, " Speed<%d> Dir<%d> Lights<%d>",ROC_Data[1], bitRead(DIRF,5),bitRead(DIRF,4)));  //X is hex d is decimal
+          //Moved all loco stuff from here to SetMotorSpeed 
+          //DebugSprintfMsgSend( sprintf ( DebugMsg, " Speed<%d> Dir<%d> Lights<%d>",ROC_Data[1], bitRead(DIRF,5),bitRead(DIRF,4)));  //X is hex d is decimal
           SetMotorSpeed(ROC_Data[1],DIRF);                          }
 #endif
-             }    // set Velocity, direction , lights
+             }    //set Velocity, direction , lights
       break;
     case 3:  {
-        Message_Decoded = true; // we understand these 
+        Message_Decoded = true; //we understand these 
         if (ROC_recipient == MyLocoAddr) {     //for me, do it!
           //Serial.print(" Function change for :");  
           //Serial.print(ROC_recipient); Serial.print(" data :"); 
 #ifdef _Audio          
-          //DebugSprintfMsgSend( sprintf ( DebugMsg, "SFX-F changed <%X>h <%X>h <%X>h",ROC_Data[1],ROC_Data[2],ROC_Data[3]));  //X is hex d is decimal
-          //delay(1); // make sure its sent!
-         
-         SetSoundEffect(ROC_Data[1],ROC_Data[2],ROC_Data[3]); //Moved settings to SetSoundEffect
-         
-/*               //ROC_Data[1];    // F1-F8   
-                 //ROC_Data[2];    // F9-F16
-                 //ROC_Data[3];    // F17-F24
+    #ifdef _LOCO_SERVO_Driven_Port              
+         SetSoundEffect(ROC_Data[1],ROC_Data[2],ROC_Data[3]); //Move settings to SetSoundEffect
+    #endif     
+/*               //ROC_Data[1];    //F1-F8   
+                 //ROC_Data[2];    //F9-F16
+                 //ROC_Data[3];    //F17-F24
 */        
 #endif
         
         }
-            }    // end case 3 functions
+            }    //end case 3 functions
       break;
-    case 4:  {}    // query
+    case 4:  {}    //query
       break;
-    case 5:  {}    // fieldcmd
+    case 5:  {}    //fieldcmd
       break;
   }
 }
@@ -1312,7 +1318,7 @@ void ROC_CLOCK() {
   mins = ROC_Data[6];
   secs = ROC_Data[7];
   //PrintTime("Time synch \n");
-  // bad idea, to have lots of things transmitting immediately after synch.. 
+  //bad idea, to have lots of things transmitting immediately after synch.. 
   //test with delay based on subIPL  
   delay(subIPL);
   if (POWERON) {
@@ -1324,14 +1330,14 @@ void ROC_CLOCK() {
   //set / synch clock
 }
 
-void ROC_NODE() { // stationary decoders GROUP 3
+void ROC_NODE() { //stationary decoders GROUP 3
   uint8_t TEMP;
 
   switch (ROC_code) {
   uint8_t NodeClass;  
   
     case 8:  {  //Identify         class manuID  versionH  versionL  nr I/O  subipH  subipL
-        Message_Decoded = true; // we understand these even if they are not for us
+        Message_Decoded = true; //we understand these even if they are not for us
         if ( (ROC_recipient ==   RocNodeID) || (    ROC_recipient ==   0)) {   //Serial.println();
           Serial.print("Responding to IDENTIFY. This node is:");
           Serial.print(RocNodeID) ;
@@ -1339,70 +1345,70 @@ void ROC_NODE() { // stationary decoders GROUP 3
           SetWordIn_msg_loc_value(sendMessage, Recipient_Addr, ROC_sender);
           SetWordIn_msg_loc_value(sendMessage, Sender_Addr, RocNodeID);
           sendMessage[5] = 3;
-          sendMessage[6] = 8 + 32; // action group and code bit 6 (32) = set for REPLY
-          sendMessage[7] = 7 + RN[3]; // len of data coming next + nicname length
+          sendMessage[6] = 8 + 32; //action group and code bit 6 (32) = set for REPLY
+          sendMessage[7] = 7 + RN[3]; //len of data coming next + nicname length
           if (RN[3] >= 1) {
             Serial.print(" Nickname :");
             Serial.print(RN[3]);
             Serial.print(" chars :'");
           }
-          // Identify... data is:  class manuID  versionH  versionL  nr I/O  subipH  subipL
-NodeClass= 0x01; //class? = io?"bit 0= accessory" bit 1= dcc Bit 3=RFID FF= Accessory DCC RFID
-#ifdef _LOCO_SERVO_Driven_Port
-NodeClass= 0x02;
-#endif
+          //Identify... data is:  class manuID  versionH  versionL  nr I/O  subipH  subipL
+          NodeClass= 0x01; //class? = io?"bit 0= accessory" bit 1= dcc Bit 3=RFID FF= Accessory DCC RFID
+          #ifdef _LOCO_SERVO_Driven_Port
+                  NodeClass= 0x02;
+          #endif
           
           sendMessage[8] = NodeClass; 
-          sendMessage[9] = 13; // manuid
+          sendMessage[9] = 13; //manuid
           SetWordIn_msg_loc_value(sendMessage, 10, SW_REV);
-          sendMessage[12] = NumberOfPorts; // 8 io seems fixed in rocrail?
-          sendMessage[13] = subIPH; // sub IPh
-          sendMessage[14] = subIPL; // sub IPl
+          sendMessage[12] = NumberOfPorts; //8 io seems fixed in rocrail?
+          sendMessage[13] = subIPH; //sub IPh
+          sendMessage[14] = subIPL; //sub IPl
           for (int i = 1 ;  i <= RN[3]; i++) {
             Serial.print(char(RN[3 + i]));
             sendMessage[14 + i] = RN[3 + i];
-          } // nickname, length RN[3] ESP is default
+          } //nickname, length RN[3] ESP is default
           Serial.println("'");
           //delay(subIPL*2); //prevent simultaneous responses to identify query
           MQTTSend("rocnet/dc", sendMessage);
-          delay(100); // leave plenty of time before sending next mqtt 
+          delay(100); //leave plenty of time before sending next mqtt 
           DebugSprintfMsgSend( sprintf ( DebugMsg, "Responding to Identify "));
-          // ROCSerialPrint(sendMessage);
+          //ROCSerialPrint(sendMessage);
         }
         Message_Decoded = true;
-      }    // Identify... data is:  class manuID  versionH  versionL  nr I/O  subipH  subipL
+      }    //Identify... data is:  class manuID  versionH  versionL  nr I/O  subipH  subipL
       break;
     case 9:  {
-        Message_Decoded = true; // we understand these even if they are not for us
+        Message_Decoded = true; //we understand these even if they are not for us
         if ( (ROC_recipient ==   RocNodeID) || (    ROC_recipient ==   0)) {
-          if ( (ROC_recipient ==   RocNodeID) ){   // ONLY IF ITS actually me.. Do not switch off for generic 0 message.
+          if ( (ROC_recipient ==   RocNodeID) ){   //ONLY IF ITS actually me.. Do not switch off for generic 0 message.
                 DebugSprintfMsgSend( sprintf ( DebugMsg, "Grp 3 Code 9 Shutting Node <%d> power off ",ROC_recipient));
                 POWERON = false;}
           else {  DebugSprintfMsgSend( sprintf ( DebugMsg, "Grp 3 Code 9 for <%d> power off IGNORED. ",ROC_recipient)); }
         }
         Message_Decoded = true;
-      }    // (Stationary )  Node Shutdown
+      }    //(Stationary )  Node Shutdown
       break;
     case 10:  {
-        Message_Decoded = true; // we understand these even if they are not for us//Acknowledge
+        Message_Decoded = true; //we understand these even if they are not for us//Acknowledge
         if ( (ROC_recipient ==   RocNodeID) || (    ROC_recipient ==   0)) {
-          Serial.print("ACKnowledging action:");       // action and port in D1, D2
+          Serial.print("ACKnowledging action:");       //action and port in D1, D2
           Serial.print(ROC_Data[1]);
           if (ROC_len >= 2) {
             Serial.print(" port:");
             Serial.print(ROC_Data[2]);
           }
           Serial.println(  );
-          // ROCSerialPrint(recMessage);
+          //ROCSerialPrint(recMessage);
 
         }
         Message_Decoded = true;
       }
       break;
     case 11:  {  //SHOW
-        Message_Decoded = true; // we understand these even if they are not for us
+        Message_Decoded = true; //we understand these even if they are not for us
         if ( (ROC_recipient ==   RocNodeID) || (    ROC_recipient ==   0)) {
-          FlashMessage("   SHOW LED    ", 10, 500, 100);  // hold the LED on for 800ms, off for 800ms, 6 times!
+          FlashMessage("   SHOW LED    ", 10, 500, 100);  //hold the LED on for 800ms, off for 800ms, 6 times!
         }
 
         Message_Decoded = true;
@@ -1410,33 +1416,33 @@ NodeClass= 0x02;
       break;
 
 
-  }// end of case
+  }//end of case
 
-}// end rocnode
+}//end rocnode
 extern int SDemand[12];
 
-void ROC_Programming() { // GROUP  5
+void ROC_Programming() { //GROUP  5
   bool Data_Changed;
   switch (ROC_code) {
-    case 4:  { // read port config
-        Message_Decoded = true; // we understand these even if they are not for us
+    case 4:  { //read port config
+        Message_Decoded = true; //we understand these even if they are not for us
         if ( (ROC_recipient ==   RocNodeID) || (    ROC_recipient ==   0)) {
           int TEMP;
           int port;
           PrintTime("  Multi byte READ Port# value, type delay :");
-
+//debugmsg
 
           sendMessage[0] = ROC_netid;
           SetWordIn_msg_loc_value(sendMessage, Recipient_Addr, ROC_sender );
           SetWordIn_msg_loc_value(sendMessage, Sender_Addr, RocNodeID);
           sendMessage[5] = ROC_group;
-          sendMessage[6] = ROC_code | Code_Reply; // action group and code bit 6 (64) = set for REPLY
-          sendMessage[7] = (((ROC_Data[2] - ROC_Data[1]) + 1) * 4); // len of data coming next from port to port..
+          sendMessage[6] = ROC_code | Code_Reply; //action group and code bit 6 (64) = set for REPLY
+          sendMessage[7] = (((ROC_Data[2] - ROC_Data[1]) + 1) * 4); //len of data coming next from port to port..
           TEMP = 0;
-          for (int i = 1 ;  i <= ((((ROC_Data[2] - ROC_Data[1]) + 1)) * 4); i = i + 4) { //  port# value type  delay
+          for (int i = 1 ;  i <= ((((ROC_Data[2] - ROC_Data[1]) + 1)) * 4); i = i + 4) { //port# value type  delay
             port = ROC_Data[1] + TEMP;
             sendMessage[7 + i] = port; //port# value type  delay
-            sendMessage[7 + i + 1] = Value_for_PortD[port]; // value=
+            sendMessage[7 + i + 1] = Value_for_PortD[port]; //value=
             sendMessage[7 + i + 2] = Pi02_Port_Settings_D[port]; //type = switch
             sendMessage[7 + i + 3] = DelaySetting_for_PortD[port]; //delay
             //Serial.print(port);
@@ -1449,20 +1455,20 @@ void ROC_Programming() { // GROUP  5
       break;
 
     case 5: {
-        Message_Decoded = true; // we understand these even if they are not for us
+        Message_Decoded = true; //we understand these even if they are not for us
         if ( (ROC_recipient ==   RocNodeID) || (    ROC_recipient ==   0)) {
           PrintTime("  Multi byte WRITE port, value type delay"); //port#  value type  delay port#  value type  delay
-
+//debugmsg
           for (byte i = 1; i <= ROC_len; i = i + 4) {
-            //  Serial.print(" Port:");
-            //  Serial.print(ROC_Data[i]);
-            // Serial.print("] Value= :");
-            // Serial.print(ROC_Data[i+1]);
-            // Serial.print(" type= :");
-            // Serial.print(ROC_Data[i+2]);
-            // Serial.print(" Delay= :");
-            // Serial.print(ROC_Data[i+3]);
-            Value_for_PortD[ROC_Data[i]] = ROC_Data[i + 1]; // value=
+            //Serial.print(" Port:");
+            //Serial.print(ROC_Data[i]);
+            //Serial.print("] Value= :");
+            //Serial.print(ROC_Data[i+1]);
+            //Serial.print(" type= :");
+            //Serial.print(ROC_Data[i+2]);
+            //Serial.print(" Delay= :");
+            //Serial.print(ROC_Data[i+3]);
+            Value_for_PortD[ROC_Data[i]] = ROC_Data[i + 1]; //value=
             Pi02_Port_Settings_D[ROC_Data[i]] = ROC_Data[i + 2]; //type =
             DelaySetting_for_PortD[ROC_Data[i]] = ROC_Data[i + 3]; //delay
           }
@@ -1476,34 +1482,31 @@ void ROC_Programming() { // GROUP  5
       break;
 
     case 6:  {
-        Message_Decoded = true; // we understand these even if they are not for us
+        Message_Decoded = true; //we understand these even if they are not for us
         if ( (ROC_recipient ==   RocNodeID) || (    ROC_recipient ==   0)) {
           if ((ROC_Data[3] == subIPH) && (ROC_Data[4] == subIPL)) {
-        //    Serial.print("Programming node:  set RocNet ID from:");
-        //    RocNodeID = getTwoBytesFromMessageHL(RN, 1);
-        //     Serial.print (RocNodeID);
+        //Serial.print("Programming node:  set RocNet ID from:");
+        //RocNodeID = getTwoBytesFromMessageHL(RN, 1);
+        //Serial.print (RocNodeID);
         Data_Changed=false;
             RocNodeID = ((ROC_Data[1] << 8) + ROC_Data[2]);
-           
-           
-             
-#ifdef _ForceRocnetNodeID_to_subIPL
-  RocNodeID =subIPL;
-  Serial.print(" Node ID forced to subIPL");
-#endif
+            #ifdef _ForceRocnetNodeID_to_subIPL
+              RocNodeID =subIPL;
+              Serial.print(" Node ID forced to subIPL");
+            #endif
             
             if (getTwoBytesFromMessageHL(RN, 1)!= RocNodeID){
             Serial.print("Programming node:  set RocNet ID to:");
-            SetWordIn_msg_loc_value(RN, 1, RocNodeID); // set RN 1 and 2
+            SetWordIn_msg_loc_value(RN, 1, RocNodeID); //set RN 1 and 2
             Serial.print (RocNodeID);
             Data_Changed=true;}
             else {Serial.print("Programming node: Unchanged ID");}
-            // ROCSerialPrint(recMessage);
+            //ROCSerialPrint(recMessage);
 
 
-            if ( ROC_len >= 6) { // set nickname
+            if ( ROC_len >= 6) { //set nickname
               Serial.print("Programming nickname ?");
-              Serial.print( ROC_len - 5); // new, uses rn3 as length
+              Serial.print( ROC_len - 5); //new, uses rn3 as length
               Serial.print(" bytes ");
               if (RN[3]!= ROC_len - 5){Data_Changed=true;}
               RN[3] = ROC_len - 5;
@@ -1526,11 +1529,11 @@ void ROC_Programming() { // GROUP  5
         Message_Decoded = true;
       }
       break;
-    case 7:  {  // report addr and status
-        Message_Decoded = true; // we understand these even if they are not for us
+    case 7:  {  //report addr and status
+        Message_Decoded = true; //we understand these even if they are not for us
         if ( (ROC_recipient ==   RocNodeID) || (    ROC_recipient ==   0)) {
-          PrintTime(" REPORT Node Addr and Status");
-          //  ROCSerialPrint(recMessage);
+          PrintTime(" Reporting Node Addr and Status");
+          //ROCSerialPrint(recMessage);
 
 /* 
  NEW: 
@@ -1538,13 +1541,13 @@ void ROC_Programming() { // GROUP  5
  RN[15         16    17       18        19             20             21               22            23              24             15              26              27      
  iotype       flags cstype  csdevice  I2C scan 0×20 H I2C scan 0×20 L I2C scan 0×30 H I2C scan 0×30 I2C scan 0×40 H I2C scan 0×40 L adc threshold I2C scan 0×50 H I2C scan 0×50 L
 */
-RN[15]=33;  // iotype not a pi, i2c-0
-RN[16]=0; // 0= no options set 
+RN[15]=33;  //iotype not a pi, i2c-0
+RN[16]=0; //0= no options set 
 RN[17]=0; //cstype: 0=none, 1=dcc232, 2=sprog
 RN[18]=0; //csdevice: 0=/dev/ttyUSB0, 1=/dev/ttyUSB1 2= /dev/ttyACMO 3 gives error in radiobox in rocview..
 RN[19]=0;  //020H  //Pi o2's
 RN[20]=1; //020 l
-RN[21]=0; //030 H // Pi04's
+RN[21]=0; //030 H //Pi04's
 RN[22]=0; //030 L
 RN[23]=0; //040 H  //Pi03's
 RN[24]=1; //040 l
@@ -1557,15 +1560,15 @@ RN[27]=0; //050 L  set 1 for "0x50" 3 for 0x50,0x51 etc..
           SetWordIn_msg_loc_value(sendMessage, Recipient_Addr, ROC_sender);
           SetWordIn_msg_loc_value(sendMessage, Sender_Addr, RocNodeID);
           sendMessage[5] = ROC_group;
-          sendMessage[6] = ROC_code | Code_Reply; // action group and code bit 6 (64) = set for REPLY
-          sendMessage[7] = 13; //  6 sends to RN20
+          sendMessage[6] = ROC_code | Code_Reply; //action group and code bit 6 (64) = set for REPLY
+          sendMessage[7] = 13; //6 sends to RN20
          for (int i = 1 ;  i <= (sendMessage[7]); i = i + 1) { 
           sendMessage[7+i] = RN[14+i];
          }
       
           MQTTSend("rocnet/ps", sendMessage);
-         // DebugMsgSend("debug", " sending (line 953)");
-         //     ROCSerialPrint(sendMessage);
+         //DebugSprintfMsgSend(sprintf(DebugMsg," sending (line 1159)"));
+         //ROCSerialPrint(sendMessage);
 
         }
         Message_Decoded = true;
@@ -1573,7 +1576,7 @@ RN[27]=0; //050 L  set 1 for "0x50" 3 for 0x50,0x51 etc..
 
       break;
     case 8: {//set rocnode options etc..
-        Message_Decoded = true; // we understand these even if they are not for us
+        Message_Decoded = true; //we understand these even if they are not for us
         if ( (ROC_recipient ==   RocNodeID) || (    ROC_recipient ==   0)) {
 
           //if ((recMessage[10]==subIPH) && (recMessage[11]==subIPL)){
@@ -1582,17 +1585,17 @@ RN[27]=0; //050 L  set 1 for "0x50" 3 for 0x50,0x51 etc..
           RN[16] = ROC_Data[2];
           RN[17] = ROC_Data[3];
           RN[18] = ROC_Data[4];
-          RN[19] = ROC_Data[5]; // ROC_Data[5] is minimal length of time a sensor will report occupied.
+          RN[19] = ROC_Data[5]; //ROC_Data[5] is minimal length of time a sensor will report occupied.
 
           WriteEEPROM();
           Data_Updated = true;
-          EPROM_Write_Delay = millis() + 500; // not ten sec, as we have all the data now..
+          EPROM_Write_Delay = millis() + 500; //not ten sec, as we have all the data now..
         }
         Message_Decoded = true;
 
       }
     case 9:  { //??Shutdown
-        Message_Decoded = true; // we understand these even if they are not for us
+        Message_Decoded = true; //we understand these even if they are not for us
         if ( (ROC_recipient ==   RocNodeID) || (    ROC_recipient ==   0)) {
            //this is used by the MACRO settings... I do not  use this
         
@@ -1602,14 +1605,14 @@ RN[27]=0; //050 L  set 1 for "0x50" 3 for 0x50,0x51 etc..
           Serial.print("  Data[2]:");
           Serial.println(ROC_Data[2]);
         
-          //   ROCSerialPrint(recMessage);
+          //ROCSerialPrint(recMessage);
         }
         Message_Decoded = true;
       }
 
       break;
     case 11: {
-        Message_Decoded = true; // we understand these even if they are not for us
+        Message_Decoded = true; //we understand these even if they are not for us
         if ( (ROC_recipient ==   RocNodeID) || (    ROC_recipient ==   0)) {
           Serial.print(" IS 'UPDATE' FROM ROCRAIL");
           if ( (ROC_Data[1] == 0) && (ROC_Data[2] == 0)) {
@@ -1621,27 +1624,27 @@ RN[27]=0; //050 L  set 1 for "0x50" 3 for 0x50,0x51 etc..
       }
 
     case 12:  {
-        Message_Decoded = true; // we understand these even if they are not for us
+        Message_Decoded = true; //we understand these even if they are not for us
         if ( (ROC_recipient ==   RocNodeID) || (    ROC_recipient ==   0)) {
           int TEMP;
           int port;
           PrintTime(" Multi byte READ  port#  idH idL port :");
-
+DebugSprintfMsgSend(sprintf(DebugMsg," Responding to Pi 02 Get data"));
 
           sendMessage[0] = ROC_netid;
           SetWordIn_msg_loc_value(sendMessage, Recipient_Addr, ROC_sender );
           SetWordIn_msg_loc_value(sendMessage, Sender_Addr, RocNodeID);
           sendMessage[5] = ROC_group;
-          sendMessage[6] = ROC_code | Code_Reply; // action group and code bit 6 (64) = set for REPLY
-          sendMessage[7] = (((ROC_Data[2] - ROC_Data[1]) + 1) * 4); // len of data coming next
+          sendMessage[6] = ROC_code | Code_Reply; //action group and code bit 6 (64) = set for REPLY
+          sendMessage[7] = (((ROC_Data[2] - ROC_Data[1]) + 1) * 4); //len of data coming next
           TEMP = 0;
-          for (int i = 1 ;  i <= (((ROC_Data[2] - ROC_Data[1]) + 1) * 4); i = i + 4) { //  port# value type  delay
+          for (int i = 1 ;  i <= (((ROC_Data[2] - ROC_Data[1]) + 1) * 4); i = i + 4) { //port# value type  delay
             port = ROC_Data[1] + TEMP;
             sendMessage[7 + i] = port; //port# value type  delay
-            sendMessage[7 + i + 1] = ID_High_for_PortD[port]; // idh
+            sendMessage[7 + i + 1] = ID_High_for_PortD[port]; //idh
             sendMessage[7 + i + 2] = ID_Low_for_PortD[port]; //idl
             sendMessage[7 + i + 3] = XRef_Port[port]; //port
-            //     Serial.print(port);
+            //Serial.print(port);
             TEMP = TEMP + 1;
           }
           MQTTSend("rocnet/ps", sendMessage);
@@ -1650,86 +1653,102 @@ RN[27]=0; //050 L  set 1 for "0x50" 3 for 0x50,0x51 etc..
       }
       break;
     case 13: {
-        Message_Decoded = true; // we understand these even if they are not for us
+        Message_Decoded = true; //we understand these even if they are not for us
         if ( (ROC_recipient ==   RocNodeID) || (    ROC_recipient ==   0)) {
 
           PrintTime(" Multi byte write Event idH idL port"); //port#  idH idL port
+    DebugSprintfMsgSend(sprintf(DebugMsg," Responding to Pi 02 Set data"));
           for (byte i = 1; i <= ROC_len; i = i + 4) {
-            // Serial.print(" Port:");
-            // Serial.print(ROC_Data[i]);
-            // Serial.print("] Value= :");
-            // Serial.print(ROC_Data[i+1]);
-            // Serial.print(" type= :");
-            // Serial.print(ROC_Data[i+2]);
-            // Serial.print(" Delay= :");
-            // Serial.print(ROC_Data[i+3]);
-            ID_High_for_PortD[ROC_Data[i]] = ROC_Data[i + 1]; // value=
+            //Serial.print(" Port:");
+            //Serial.print(ROC_Data[i]);
+            //Serial.print("] Value= :");
+            //Serial.print(ROC_Data[i+1]);
+            //Serial.print(" type= :");
+            //Serial.print(ROC_Data[i+2]);
+            //Serial.print(" Delay= :");
+            //Serial.print(ROC_Data[i+3]);
+            ID_High_for_PortD[ROC_Data[i]] = ROC_Data[i + 1]; //value=
             ID_Low_for_PortD[ROC_Data[i]] = ROC_Data[i + 2]; //type =
             XRef_Port[ROC_Data[i]] = ROC_Data[i + 3]; //delay
           }
-          // Serial.println();
+          //Serial.println();
           WriteEEPROM();
           Data_Updated = true;
-          EPROM_Write_Delay = millis() + 500; // not ten sec, as we have all the data now..
+          EPROM_Write_Delay = millis() + 500; //not ten sec, as we have all the data now..
         }
         Message_Decoded = true;
       }
 
       break;
     case 15:  {
-        Message_Decoded = true; // we understand these even if they are not for us
+        Message_Decoded = true; //we understand these even if they are not for us
         if ( (ROC_recipient ==   RocNodeID) || (    ROC_recipient ==   0)) {
 
           int TEMP;
           int port;
-          PrintTime (" Multi byte READ  Channel data sending:");
+          
 
 
+          PrintTime (" Multi byte READ Channel data ");
+  DebugSprintfMsgSend(sprintf(DebugMsg," Responding to Pi 03 Get data"));
           sendMessage[0] = ROC_netid;
           SetWordIn_msg_loc_value(sendMessage, Recipient_Addr, ROC_sender);
           SetWordIn_msg_loc_value(sendMessage, Sender_Addr, RocNodeID);
           sendMessage[5] = ROC_group;
-          sendMessage[6] = ROC_code | Code_Reply; // action group and code bit 6 (64) = set for REPLY
-          sendMessage[7] = (((ROC_Data[2] - ROC_Data[1]) + 1) * 8); // len of data coming next
-          Serial.print(sendMessage[7]);
-          Serial.print(" Bytes ");
+          sendMessage[6] = ROC_code | Code_Reply; //action group and code bit 6 (64) = set for REPLY
+          sendMessage[7] = (((ROC_Data[2] - ROC_Data[1]) + 1) * 8); //len of data coming next
+          //Serial.print(sendMessage[7]);
+          //Serial.print(" Bytes ");
           port = ROC_Data[1];
-          for (int i = 1 ;  i <= ((((ROC_Data[2] - ROC_Data[1])) + 1) * 8); i = i + 8) { //  port# value type  delay
-
-            sendMessage[7 + i] = port; //port# value type  delay
-            sendMessage[7 + i + 1] = Pi03_Setting_offposH[port];
-            sendMessage[7 + i + 2] = Pi03_Setting_offposL[port];
-            sendMessage[7 + i + 3] = Pi03_Setting_onposH[port];
-            sendMessage[7 + i + 4] = Pi03_Setting_onposL[port];
-            sendMessage[7 + i + 5] = Pi03_Setting_offsteps[port];
-            sendMessage[7 + i + 6] = Pi03_Setting_onsteps[port];
-            sendMessage[7 + i + 7] = Pi03_Setting_options[port];
-            Serial.print(" Ch:");
-            Serial.print(port);
-            Serial.print(" starting at:");
-            Serial.print(7 + i);
+          for (int i = 1 ;  i <= ((((ROC_Data[2] - ROC_Data[1])) + 1) * 8); i = i + 8) { //port# value type  delay
+            if ((ROC_Data[1] >= Pi03_Start_At) && (ROC_Data[1] <= Pi03_End_At)){ // Added new check for port range  is compatible with node range of available ports
+              sendMessage[7 + i] = port; //port# value type  delay
+              sendMessage[7 + i + 1] = Pi03_Setting_offposH[port];
+              sendMessage[7 + i + 2] = Pi03_Setting_offposL[port];
+              sendMessage[7 + i + 3] = Pi03_Setting_onposH[port];
+              sendMessage[7 + i + 4] = Pi03_Setting_onposL[port];
+              sendMessage[7 + i + 5] = Pi03_Setting_offsteps[port];
+              sendMessage[7 + i + 6] = Pi03_Setting_onsteps[port];
+              sendMessage[7 + i + 7] = Pi03_Setting_options[port];
+               Serial.print(" Ch:");
+               Serial.print(port);
+               //Serial.print(" starting at:");
+               //Serial.print(7 + i);   
+               }else{// this is outside our range
+              sendMessage[7 + i] = port; //port# value type  delay
+              sendMessage[7 + i + 1] = 0;
+              sendMessage[7 + i + 2] = 0;
+              sendMessage[7 + i + 3] = 0;
+              sendMessage[7 + i + 4] = 0;
+              sendMessage[7 + i + 5] = 0;
+              sendMessage[7 + i + 6] = 0;
+              sendMessage[7 + i + 7] = 0;
+               Serial.print("Outside Node range ");
+                    }
+            
             port = port + 1;
           }
           MQTTSend("rocnet/ps", sendMessage);
           Serial.println(" end");
-          // ROCSerialPrint(sendMessage);
+          //ROCSerialPrint(sendMessage);
         }   Message_Decoded = true;
       }
 
       break;
     case 16: {
-        Message_Decoded = true; // we understand these even if they are not for us
+        Message_Decoded = true; //we understand these even if they are not for us
         if ( (ROC_recipient ==   RocNodeID) || (    ROC_recipient ==   0)) {
           PrintTime(" Multi byte WRITE channel");  //channel# offposH offposL onposH  onposL  offsteps  onsteps options
+DebugSprintfMsgSend(sprintf(DebugMsg," Responding to Pi 03 Set data"));
           for (byte i = 1; i <= ROC_len; i = i + 8) {
-            // Serial.print(" Port:");
-            // Serial.print(ROC_Data[i]);
-            // Serial.print("] Value= :");
-            // Serial.print(ROC_Data[i+1]);
-            // Serial.print(" type= :");
-            // Serial.print(ROC_Data[i+2]);
-            // Serial.print(" Delay= :");
-            // Serial.print(ROC_Data[i+3]);
+            //Serial.print(" Port:");
+            //Serial.print(ROC_Data[i]);
+            //Serial.print("] Value= :");
+            //Serial.print(ROC_Data[i+1]);
+            //Serial.print(" type= :");
+            //Serial.print(ROC_Data[i+2]);
+            //Serial.print(" Delay= :");
+            //Serial.print(ROC_Data[i+3]);
             Pi03_Setting_offposH[ROC_Data[i]] = ROC_Data[i + 1];
             Pi03_Setting_offposL[ROC_Data[i]] = ROC_Data[i + 2];
             Pi03_Setting_onposH[ROC_Data[i]] = ROC_Data[i + 3];
@@ -1742,130 +1761,141 @@ RN[27]=0; //050 L  set 1 for "0x50" 3 for 0x50,0x51 etc..
           }
           WriteEEPROM();
           Data_Updated = true;
-          EPROM_Write_Delay = millis() + 500; // not ten sec, as we have all the data now..
+          EPROM_Write_Delay = millis() + 500; //not ten sec, as we have all the data now..
         }
         Message_Decoded = true;
       }
 
       break;
     case 18: { //set channel#  valueH  valueL (Pi03 settings)
-        Message_Decoded = true; // we understand these even if they are not for us
+        Message_Decoded = true; //we understand these even if they are not for us
         if ( (ROC_recipient ==   RocNodeID) || (    ROC_recipient ==   0)) {
           uint16_t DesiredPos;
 
-          PrintTime( " Single Channel WRITE Ch:"); //channel# valueH  valueL
-          Serial.print(ROC_Data[1]);
+         // PrintTime( " Single Channel WRITE Ch:"); //channel# valueH  valueL
+         // Serial.print(ROC_Data[1]);
           
           if (ROC_Data[4] == 0) {
-            Serial.print(" updating Left position");
+          //  Serial.print(" updating Left position");
             Pi03_Setting_offposH[ROC_Data[1]] = ROC_Data[1 + 1];
             Pi03_Setting_offposL[ROC_Data[1]] = ROC_Data[1 + 2];
-          }    // uses 150-600 so need to change it before using with servo
+          }    //uses 150-600 so need to change it before using with servo
           if (ROC_Data[4] == 1) {
-            Serial.print(" updating Right position");
+          //  Serial.print(" updating Right position");
             Pi03_Setting_onposH[ROC_Data[1]] = ROC_Data[1 + 1];
             Pi03_Setting_onposL[ROC_Data[1]] = ROC_Data[1 + 2];
           }      
 
           
-   // ROCRAIL DesiredPos uses 150-600 so need to change it before using with servo 
+   //ROCRAIL DesiredPos uses 150-600 so need to change it before using with servo 
           if ((Pi03_Setting_options[ROC_Data[1]] & 32) == 32) { ///SERVO....To address a channel instead of a port the port type servo must be set on the interface tab of switches and outputs
              DesiredPos = (ROC_Data[1 + 1] * 256) + ROC_Data[1 + 2];
-             SDemand[ROC_Data[1]] = ((DesiredPos - 150) * 2) / 5;  // why??  because it sets "demand" to set servo position for test
-             DebugSprintfMsgSend( sprintf ( DebugMsg, "Servo[%d] to:%d degrees",ROC_Data[1],(((DesiredPos - 150) * 2) / 5)));
-             SERVOS();                                        } // set the servo immediately range 150-600 (rocrail limmits) = 0 to 180 so we can see the movement                                                }          
+             SDemand[ROC_Data[1]] = ((DesiredPos - 150) * 2) / 5;  //why??  because it sets "demand" (in degrees) to set the servo position for test
+             if (ROC_Data[4] == 1) { DebugSprintfMsgSend( sprintf ( DebugMsg, "Setting Servo[%d] Right pos to:%d  (=%d degrees)",ROC_Data[1],DesiredPos,SDemand[ROC_Data[1]]));}
+                               else{ DebugSprintfMsgSend( sprintf ( DebugMsg, "Setting Servo[%d] Left pos to:%d  (=%d degrees)",ROC_Data[1],DesiredPos,SDemand[ROC_Data[1]]));}
+             SERVOS();                                        } //set the servo immediately range 150-600 (rocrail limmits) = 0 to 180 so we can see the movement                                                }          
    
    
-   // if PWM output   //  ROCRAIL DesiredPos sets 0-4095 range,,   Arduino PWM range is 0-1023, 
-           if ((Pi03_Setting_options[ROC_Data[1]] & 128) == 128) { // set pwm immediately, arduino range is 0-1023, rocrail has 0-4095 range
-            DebugSprintfMsgSend( sprintf ( DebugMsg, " PWM to :[%d]",DesiredPos/4));
-            analogWrite( NodeMCUPinD[ROC_Data[1]], DesiredPos/4);   // change to the desired pwm.
+   //if PWM output   //ROCRAIL DesiredPos sets 0-4095 range,,   Arduino PWM range is 0-1023, 
+           if (IsPWM(ROC_Data[1])) { //set pwm immediately, arduino range is 0-1023, rocrail has 0-4095 range
+            DebugSprintfMsgSend( sprintf ( DebugMsg, " Setting PWM to :[%d]",DesiredPos/4));
+            analogWrite( NodeMCUPinD[ROC_Data[1]], DesiredPos/4);   //change to the desired pwm.
                                                                  } 
          
           Data_Updated = true;
-          EPROM_Write_Delay = millis() + 30000; // 30 sec, not ten sec, as we may be wanting to tweak it when we see the movement..
+          EPROM_Write_Delay = millis() + 30000; //30 sec, not ten sec, as we may be wanting to tweak it when we see the movement..
         }
         Message_Decoded = true;
       }
       break;
 
-  }// end code switch
-}// end group 5
+  }//end code switch
+}//end group 5
 
 extern uint32_t PortTimingDelay[12];
+#ifdef _Audio
+extern bool PlayingSoundEffect;
+#endif
 void ROC_Outputs() { //group 9
 
   switch (ROC_code) {
     case 1: {
-        Message_Decoded = true; // we understand these even if they are not for us
+        Message_Decoded = true; //we understand these even if they are not for us
         if ( (ROC_recipient ==   RocNodeID) ) {
           boolean STATE; 
           STATE = ROC_Data[1];
-          
-         
- if ((Pi02_Port_Settings_D[ROC_Data[4]] & 0x01) == 0) {      // Setting an output first make sure its an output!
+          //DebugSprintfMsgSend( sprintf ( DebugMsg, " Requesting D%d to state%d  is servo?%d ", ROC_Data[4], STATE,IsServo(ROC_Data[4]))); // should not need this debug message as all active outcomes have separate messages
+       if ((ROC_Data[4]>= Pi02_Start_At) && (ROC_Data[4]<= Pi02_End_At)){ 
+       if ((Pi02_Port_Settings_D[ROC_Data[4]] & 0x01) == 0) {      //Setting an output first make sure its an output!
             ButtonState[ROC_Data[4]] = STATE;
-      if ((Pi02_Port_Settings_D[ROC_Data[4]] & 64) == 64)   {  // invert ?
-              STATE = !STATE;   // invert state
+          if ((Pi02_Port_Settings_D[ROC_Data[4]] & 64) == 64)   {  //invert ?
+              STATE = !STATE;   //invert state
                                                     }   
-          if ((Pi03_Setting_options[ROC_Data[4]] & 32) == 32) {   //SERVO....To address a channel instead of a port the port type servo must be set on the interface tab of switches and outputs
-          // DebugSprintfMsgSend( sprintf ( DebugMsg, "Setting Output %d (SERVO) to %d", ROC_Data[4], STATE)); 
-          // DebugMsgSend("debug", DebugMsg);
-           
-            ButtonState[ROC_Data[4]] = STATE;
-            SDemand[ROC_Data[4]] = servoLR(STATE, ROC_Data[4]);// just setting sdemand allows "servos" to drive the servo to the desired position 
-            if (SDemand[ROC_Data[4]] >= 180) {  //set limits 
-              SDemand[ROC_Data[4]] = 180;
-            }
-            if (SDemand[ROC_Data[4]] <= 0) {    // set limit
-              SDemand[ROC_Data[4]] = 0;
-            }
-            Pi03_Setting_LastUpdated[ROC_Data[4]] = millis();  
-           DebugSprintfMsgSend( sprintf ( DebugMsg, "Setting Output %d (SERVO) to State(%d) = Position:%d ", ROC_Data[4],STATE,SDemand[ROC_Data[4]])); 
-         
-          /*PrintTime("Setting servo:");
-            Serial.print (ROC_Data[4]);
-            Serial.print (" to  ");//D1=on off  D4= Port
-            Serial.println (SDemand[ROC_Data[4]]);  // the demand, can be 0,1 or pwm 
-          */
-          }   //        End of servo                                         
-          else {   // not servo
-            if ((Pi03_Setting_options[ROC_Data[4]] & 128) == 128) {// is channel blink set, if so, use PWM outputs as settings for on and off channel positions
-           //PrintTime("SET PWM OUTPUT D");Serial.print (ROC_Data[4]);
-           //   if((Pi02_Port_Settings_D[ROC_Data[4]] & 129) == 128){Serial.print(" flashing ");}
+       if (IsServo(ROC_Data[4])) {   //SERVO?....To address a channel instead of a port the port type servo must be set on the interface tab of switches and outputs
              
-           //   Serial.print (" PWM set by rocrail  ");
-           //   Serial.println (FlashHL(STATE, ROC_Data[4]));// STATE will record on or off, so we can turn flashing on and off
+            ButtonState[ROC_Data[4]] = STATE;
+            SDemand[ROC_Data[4]] = servoLR(STATE, ROC_Data[4]);//just setting sdemand allows "servos" to drive the servo to the desired position 
+            if (SDemand[ROC_Data[4]] >= 180) {  //set limits 
+                                   SDemand[ROC_Data[4]] = 180;
+                                              }
+            if (SDemand[ROC_Data[4]] <= 0) {    //set limit
+                                   SDemand[ROC_Data[4]] = 0;
+                                              }
+            Pi03_Setting_LastUpdated[ROC_Data[4]] = millis();  
+            DebugSprintfMsgSend( sprintf ( DebugMsg, "Setting Output %d (SERVO) to State(%d) = Position:%d ",ROC_Data[4],STATE,SDemand[ROC_Data[4]])); 
+          }   //   End of servo                                         
+          else {   //not servo
+               if (IsPWM(ROC_Data[4])) {//is channel blink set, if so, use PWM outputs as settings for on and off channel positions
+           //PrintTime("SET PWM OUTPUT D");Serial.print (ROC_Data[4]);
+           //if((Pi02_Port_Settings_D[ROC_Data[4]] & 129) == 128){Serial.print(" flashing ");}
+             
+           //Serial.print (" PWM set by rocrail  ");
+           //Serial.println (FlashHL(STATE, ROC_Data[4]));//STATE will record on or off, so we can turn flashing on and off
               PortTimingDelay[ROC_Data[4]] = millis() + (DelaySetting_for_PortD[ROC_Data[4]] * 10);
-              analogWrite( NodeMCUPinD[ROC_Data[4]], FlashHL(STATE, ROC_Data[4]));   // set pwm, arduino range is 0-1023, rocrail has 0-4095 range
-              SDemand[ROC_Data[4]] = FlashHL(STATE, ROC_Data[4]); // save  what we have set for flashing 
+              analogWrite( NodeMCUPinD[ROC_Data[4]], FlashHL(STATE, ROC_Data[4]));   //set pwm, arduino range is 0-1023, rocrail has 0-4095 range
+              SDemand[ROC_Data[4]] = FlashHL(STATE, ROC_Data[4]); //save  what we have set for flashing 
               
                
-              if((Pi02_Port_Settings_D[ROC_Data[4]] & 129) == 128){DebugSprintfMsgSend( sprintf ( DebugMsg, "Setting Output FLASHING %d  to %d", ROC_Data[4], SDemand[ROC_Data[4]]));}
-              else {DebugSprintfMsgSend( sprintf ( DebugMsg, "Setting Output %d (PWM) to %d", ROC_Data[4], SDemand[ROC_Data[4]]));}
+              if((Pi02_Port_Settings_D[ROC_Data[4]] & 129) == 128){
+                      DebugSprintfMsgSend( sprintf ( DebugMsg, "Setting Output FLASHING %d  to %d", 
+                      ROC_Data[4], SDemand[ROC_Data[4]]));}
+              else {  DebugSprintfMsgSend( sprintf ( DebugMsg, "Setting Output %d (PWM) to %d", ROC_Data[4], 
+                      SDemand[ROC_Data[4]]));}
             }
-            else {                                                // this is a pure digital output
-            // PrintTime(" (1251) OUTPUT D");Serial.print (ROC_Data[4]);   
-            //  if((Pi02_Port_Settings_D[ROC_Data[4]] & 129) == 128){Serial.print(" flashing ");}
-              
-              
-              if((Pi02_Port_Settings_D[ROC_Data[4]] & 129) == 128){DebugSprintfMsgSend( sprintf ( DebugMsg, "Setting Output FLASHING %d (Digital) to %d", ROC_Data[4], STATE));}
-              else{ DebugSprintfMsgSend( sprintf ( DebugMsg, "Setting Output %d (Digital) to %d", ROC_Data[4], STATE)); }
-             
-              //Serial.println (STATE);// record on or off, so we can turn flashing on and off
-              
+            else {                                                //this not servo not pwm, so is a pure digital output
+                      
+              if((Pi02_Port_Settings_D[ROC_Data[4]] & 129) == 128){
+                       DebugSprintfMsgSend( sprintf ( DebugMsg, "Setting Output FLASHING %d (Digital) to %d",ROC_Data[4], STATE));}
+                       else{    DebugSprintfMsgSend( sprintf ( DebugMsg, "Setting Output %d (Digital) to %d",ROC_Data[4], STATE)); }
+                     
               digitalWrite(NodeMCUPinD[ROC_Data[4]], STATE); 
               PortTimingDelay[ROC_Data[4]] = millis() + (DelaySetting_for_PortD[ROC_Data[4]] * 10);
-              SDemand[ROC_Data[4]] = servoLR(STATE, ROC_Data[4]);  // use sdemand to save state so we can flash
-            } // pure digital
+              SDemand[ROC_Data[4]] = servoLR(STATE, ROC_Data[4]);  //use sdemand to save state so we can flash
+            } //pure digital
           } //not servo
-        } // set output
-      } // a node we understand
-    } // end case 1
+        } //set output
+
+        } // in range of pi02 settings
+else {
+      #if defined (_Audio) && !defined (_LOCO_SERVO_Driven_Port)  // add ability to play 8 sound effects by triggering switches but only for stationary nodes, not locos
+      if (STATE &&!PlayingSoundEffect){
+        int SFXNum;
+        char Filename[31]; Filename[0]='\0';
+        SFXNum=ROC_Data[4]-10; // Output Port 11 =1 triggers F1 etc.. 
+        if (SFXNum<=1){SFXNum=1;}//set range of SFX available
+        if (SFXNum>=8){SFXNum=8;}//set range
+        sprintf (Filename,"/F%d.wav",SFXNum);
+        //if (ROC_Data[4]==10){sprintf (Filename,"/S%d.wav",SFXNum);}   // deliberately set non existant sound file for testing chuffs code.
+        BeginPlay(1,Filename,CV[100+SFXNum]);
+                                       }
+      #endif
+     }
+    } //a node we understand
+   } //end case 1
       break;
 
 
-  }// end of switch code
+  }//end of switch code
 
 }//end of ROC_Outputs
 
@@ -1874,13 +1904,13 @@ void SendPortChange(int RNID, boolean ST, uint8_t i) {
   //new format send
   sendMessage[0] = ROC_netid;
   sendMessage[1] = 0x00;
-  sendMessage[2] = 0x01; // recipient is the rocrail server
+  sendMessage[2] = 0x01; //recipient is the rocrail server
   SetWordIn_msg_loc_value(sendMessage, Sender_Addr, RNID);
   sendMessage[5] = 8;
-  sendMessage[6] = 1; // action group and code
-  sendMessage[7] = 4;   // len of data coming next
+  sendMessage[6] = 1; //action group and code
+  sendMessage[7] = 4;   //len of data coming next
   sendMessage[8] = 0x00;
-  sendMessage[9] = MyLocoAddr; // reporting loco address?
+  sendMessage[9] = MyLocoAddr; //reporting loco address?
   sendMessage[10] = ST;             sendMessage[11] = i; //port
   char Message[80];
   snprintf(Message, sizeof(Message), "*Sensor Seen&Sent  Address:%d state:%d", i, ST);
@@ -1891,60 +1921,61 @@ void SendPortChange(int RNID, boolean ST, uint8_t i) {
 
 void DoRocNet() {
   if (RocNodeID == IntFromPacket_at_Addr(sendMessage, Sender_Addr)){
-        Message_Decoded = true;} //  this is a reflected a message we originally sent
-  if (Message_Length >= 1) { // have we recieved data?
+        Message_Decoded = true;} //this is a reflected a message we originally sent
+  if (Message_Length >= 1) { //have we recieved data?
     switch (ROC_group) {
-      case 0:  {}    // {Host
+      case 0:  {}    //{Host
         break;
       case 1:  {
-          ROC_CS(); // Command Station Command Station rocnet/cs
+          ROC_CS(); //Command Station Command Station rocnet/cs
         }
         break;
       case 2:  {
           ROC_MOBILE();
-        }    // Locomotives and functions rocnet/lc
+        }    //Locomotives and functions rocnet/lc
         break;
       case 3:  {
-          ROC_NODE(); // Stationary decoders  Multiport for inputs and outputs  rocnet/dc
+          ROC_NODE(); //Stationary decoders  Multiport for inputs and outputs  rocnet/dc
         }
         break;
-      case 4:  {}    // Programming mobile DCC CVs rocnet/pm
+      case 4:  {}    //Programming mobile DCC CVs rocnet/pm
         break;
       case 5:  {
-          ROC_Programming(); // Programming stationary Including command stations  rocnet/ps
+          ROC_Programming(); //Programming stationary Including command stations  rocnet/ps
         }
         break;
-      case 6:  {}    // GP Data transfer  General purpose data transfer between modules
+      case 6:  {}    //GP Data transfer  General purpose data transfer between modules
         break;
       case 7:  {
-          ROC_CLOCK(); // Clock Fast clock  rocnet/ck
+          ROC_CLOCK(); //Clock Fast clock  rocnet/ck
         }
         break;
       case 8:  {
-          Message_Decoded = true; //  Position determination  rocnet/sr  // do not want to see these just now
+          Message_Decoded = true; //Position determination  rocnet/sr  //do not want to see these just now
         }
         break;
       case 9:  {
-          ROC_Outputs(); // Outputs  rocnet/ot
+          ROC_Outputs(); //Outputs  rocnet/ot
         }
         break;
-      case 10:  {}    // Input
+      case 10:  {}    //Input
         break;
-      case 11:  {}    // Sound
+      case 11:  {}    //Sound
         break;
-      case 12:  {}    // Display
+      case 12:  {}    //Display
         break;
-      default:  {}    // Default!!
+      default:  {}    //Default!!
         break;
     }
-  }     // end message length decode
-  
-  if   ((!Message_Decoded) && (Message_Length >= 1) && ((CV[47] & 0x40) == 0x40)) {
-    DebugMsgSend("debug", " Message not understood.. see serial output");
-     }  // print / send things not decoded if debugs are on
+  }     //end message length decode
+#if defined (_showRocMSGS) || defined (_SERIAL_MQTT_DEBUG)  
+  if   ((!Message_Decoded) && (Message_Length >= 1) ) {
+    DebugSprintfMsgSend(sprintf(DebugMsg," Message not understood.. see serial output"));
+     }  //print / send things not decoded if debugs are on
    if   ((!Message_Decoded)&& (Message_Length >= 1 )) {
       Serial.print(" MSG Not Understood<"); Serial.print(Show_ROC_MSG()); Serial.println(">");
    }
-  Message_Length = 0; // reset !
+   #endif
+  Message_Length = 0; //reset !
 }
 

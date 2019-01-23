@@ -17,11 +17,11 @@
 //#if defined(ARDUINO_ESP8266_ESP01)
 
  #include <SPI.h>
- #include <MFRC522.h> //   mine is modified to give 10Mhz with ESP  #define SPI_CLOCK_DIV_4 10000000  #define myClock  10000000 // replaces    SPI_CLOCK_DIV4
+ #include <MFRC522.h> //mine is modified to give 10Mhz with ESP  #define SPI_CLOCK_DIV_4 10000000  #define myClock  10000000 //replaces    SPI_CLOCK_DIV4
 
-#define RST_PIN         D0           // Configurable, see typical pin layout above
-#define SS_PIN          D1           // Configurable, see typical pin layout above
-// Configurable, see typical pin layout above    //setup
+#define RST_PIN         D0           //Configurable, see typical pin layout above
+#define SS_PIN          D1           //Configurable, see typical pin layout above
+//Configurable, see typical pin layout above    //setup
 //RFID stuff***************************************************************
 #define NR_OF_PORTS     1
 #define NR_OF_SVS       NR_OF_PORTS * 3 + 3
@@ -30,7 +30,7 @@
 
 
 
-MFRC522 mfrc522(SS_PIN, RST_PIN);   // Create MFRC522 instance.
+MFRC522 mfrc522(SS_PIN, RST_PIN);   //Create MFRC522 instance.
 MFRC522::MIFARE_Key key;
 
 
@@ -64,9 +64,9 @@ int RFID_read = 0;
 bool bRFIDquiet;
 void SetupRFID(void ){
    Serial.println("------------------------ MFRC 522 testing -----------------");
-  //   * Setup rfidstuff *************************
-  SPI.begin();        // Init SPI bus//
-  mfrc522.PCD_Init(); // Init MFRC522 card
+  //* Setup rfidstuff *************************
+  SPI.begin();        //Init SPI bus//
+  mfrc522.PCD_Init(); //Init MFRC522 card
   mfrc522.PCD_SetRegisterBitMask(mfrc522.RFCfgReg, (0x07 << 4)); //https://github.com/miguelbalboa/rfid/issues/43 //If you set Antenna Gain to Max it will increase reading distance
   byte readReg = mfrc522.PCD_ReadRegister(mfrc522.VersionReg);
   if ((readReg == 0x00) || (readReg == 0xFF)) { //missing reader
@@ -83,29 +83,29 @@ void SendUID (uint8_t *UID, uint8_t PHASE, int where ) { //phase 1 =on 0=off
   int addr;
 
   addr = UID[1] + (UID[2] * 256);
-  addr = 100 + (addr & 127); // function to place all tags within a 127 range , starting at 100.. WILL RESULT IN DUPLICATE TAG ADDRESSES!!
+  addr = 100 + (addr & 127); //function to place all tags within a 127 range , starting at 100.. WILL RESULT IN DUPLICATE TAG ADDRESSES!!
   if (!(addr == 100)) {
 #if _SERIAL_DEBUG
-    //  Serial.print(millis());
-    //     Serial.print(" ms RFID ");
+    //Serial.print(millis());
+    //Serial.print(" ms RFID ");
     //Serial.print (where);
     //Serial.println();
-    //        Serial.print(" Addr:");
-    //        Serial.print (addr);
-    //        Serial.print (" Val:");
-    //        Serial.println(PHASE);
+    //   Serial.print(" Addr:");
+    //   Serial.print (addr);
+    //   Serial.print (" Val:");
+    //   Serial.println(PHASE);
 #endif
     if (PHASE == 1) {
       SensorOutput_Inactive = false;
-      SendPortChange(200, 1, addr) ; // set rocnodeID to 200 for all RFID sends
-      //   delay(50);
-      //   SendPortChange(200,1,addr) ;  // double send as experiment to see if this helps
+      SendPortChange(200, 1, addr) ; //set rocnodeID to 200 for all RFID sends
+      //delay(50);
+      //SendPortChange(200,1,addr) ;  //double send as experiment to see if this helps
     }
     if (PHASE == 0) {
       SensorOutput_Inactive = true;
-      SendPortChange(200, 0, addr); // set rocnodeID to 200 for all RFID sends}// set rocnodeID to 200 for all RFID sends
-      //  delay(50);
-      //  SendPortChange(200,0,addr) ;  // double send as experiment to see if this helps
+      SendPortChange(200, 0, addr); //set rocnodeID to 200 for all RFID sends}//set rocnodeID to 200 for all RFID sends
+      //delay(50);
+      //SendPortChange(200,0,addr) ;  //double send as experiment to see if this helps
     }
     oldUid[1] = 0;
     oldUid[2] = 0;
@@ -118,34 +118,34 @@ void checkRFID() {
   //RFIDCycle=RFIDCycle+20;  //check rfid at 20ms intervals   (would be sensible if I coud get this cycle below 20ms !!!)
   if (bReaderActive) {
 
-    // OLD CODE
+    //OLD CODE
     if ( mfrc522.PICC_IsNewCardPresent() && mfrc522.PICC_ReadCardSerial()) {
-      //  Serial.println("Newcard and Piccreadserial line 107");
-      if (!compareUid( mfrc522.uid.uidByte, oldUid, mfrc522.uid.size)) { // NEW  (NOT same UID)
+      //Serial.println("Newcard and Piccreadserial line 107");
+      if (!compareUid( mfrc522.uid.uidByte, oldUid, mfrc522.uid.size)) { //NEW  (NOT same UID)
         if (!((oldUid[1] == 0) && (oldUid[2] == 0))) {
           SendUID(oldUid, 0, 2); //clear old uid if it has not been cleared
         }
         SendUID(mfrc522.uid.uidByte, 1, 1);
-        RFIDCycle = millis() + RFIDQuietAfterTag; // switched on, so do'nt do any more reading for 2 secs..
+        RFIDCycle = millis() + RFIDQuietAfterTag; //switched on, so do'nt do any more reading for 2 secs..
         copyUid(oldUid, mfrc522.uid.uidByte,  mfrc522.uid.size); //save in oldUID
-        //     uiStartTime = millis()+RFIDQuietAfterTag;
-        //     bRFIDactive=true;
+        //uiStartTime = millis()+RFIDQuietAfterTag;
+        //bRFIDactive=true;
         bRFIDquiet = false;
-        //    Serial.println("Found new card..line116");
-      }//  end NOT same UID same
+        //Serial.println("Found new card..line116");
+      }//end NOT same UID same
       else { //is the same card still...
-        //                    Serial.println("Same card..line119");
-        //      uiStartTime = millis()+RFIDQuietAfterTag;
+        //               Serial.println("Same card..line119");
+        // uiStartTime = millis()+RFIDQuietAfterTag;
         RFIDCycle = millis() + RFIDQuietAfterTag; //update time card was seen
       }                                              //same card end..
-    } else { //  nothing read..
+    } else { //nothing read..
 
       if ((!bRFIDquiet) && (millis() >= RFIDCycle + uiDelayTime)) {
-        //           Serial.println("Nothing read for a while .line 126"); // wait delay before declaring the card gone
+        //      Serial.println("Nothing read for a while .line 126"); //wait delay before declaring the card gone
         SendUID(oldUid, 0, 3);
         bRFIDquiet = true;
       } //if((uiActTime
-    }// nothing read
+    }//nothing read
 
 
 

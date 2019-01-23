@@ -1,7 +1,7 @@
-#ifndef _globals_h
-  #define _globals_h
-  
-uint16_t SW_REV = 21; 
+#ifndef _Globals_h
+  #define _Globals_h
+  #include <Arduino.h> //needed 
+uint16_t SW_REV = 22; 
 
 /* PIN References... Also defined somewhere else in the esp included code so do not unhide this section!!!...
   static const uint8_t D0   = 16;  and Red Led on NodeMcu V2 (not present on NodeMCU v3)
@@ -17,19 +17,33 @@ uint16_t SW_REV = 21;
   static const uint8_t D10  = 1;
 
 
-  #define NodeMCUPinD[SignalLed] 2 // same as PIN D4!
+  #define NodeMCUPinD[SignalLed] 2 //same as PIN D4!
 
 */
+/*//sound volumes references 
+CV[100]=127; //Overall volume control
+CV[101]=127; //volume for F1 
+CV[102]=127;
+CV[103]=127;
+CV[104]=127;
+CV[105]=127;
+CV[106]=127;
+CV[107]=127;
+CV[108]=127; //Volume for F8
 
-// stuff for ssid reset
+CV[110]=127; //volume for chuffs
+CV[111]=127; //volume for Brake Squeal
+//
+*/  
+
+//stuff for ssid reset
 boolean  ResetWiFi;
   
 
-//// Debug settings
-#define _SERIAL_DEBUG  1
-#define _SERIAL_SUBS_DEBUG 1
+
 
 char DebugMsg[127];
+char temp_msg[31];
 //#include "SV.h"
 
 //one cross reference for each port   
@@ -44,12 +58,12 @@ char DebugMessage[128];
 uint8_t LenDebugMessage;
 
 
-// any MQTT Stuff??
+//any MQTT Stuff??
 uint32_t MsgSendTime;
 boolean MSGReflected;
 uint8_t SentMessage[128];
 uint8_t SentMessage_Length;
-char SentTopic[20];
+String SentTopic;
 int connects;
 int oldconnects;
 
@@ -65,6 +79,11 @@ boolean POWERON;
 boolean LOCO ;
 boolean Phase;
 
+uint16_t MyLocoAddr ;
+uint8_t Loco_motor_servo_demand = 0 ;
+uint8_t Loco_servo_last_position;
+bool Last_Direction;
+bool Last_Set_Dir;
 
 boolean bReaderActive = false;
 
@@ -80,9 +99,9 @@ uint32_t MSTimer;
 uint8_t CV[256];
 uint8_t RN[256];
 
-uint16_t ROCNode_Status;
+//uint16_t ROCNode_Status; ?not needed now
 
-char* Nickname;
+char Nickname[35];
 uint8_t hrs;
 uint8_t mins;
 uint8_t secs;   

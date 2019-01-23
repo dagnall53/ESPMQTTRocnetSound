@@ -1,20 +1,21 @@
 #ifndef Chuff_h 
  #define Chuff_h
- 
+  #include "Directives.h"
+//  #include "Globals.h"
   #include <Arduino.h> //needed 
   #define _AudioDebug
 
   
-
-void SetChuffPeriod(long Setting);
+bool ChuffsOn(void);
+void SetChuffPeriod(long Setting, int WavPerRPM );
 void SetChuffPeriodFromSpeed(uint16_t value);
 //void SetChuffPeriodFromServoPos(uint16_t value);
 void SetSoundEffect(uint8_t Data1,uint8_t Data2,uint8_t Data3);
 void SetUpAudio(uint32_t TimeNow);
 void BeginPlay(int Channel,const char *wavfilename, uint8_t CVVolume);
-void BeginPlayND(int Channel,const char *wavfilename, uint8_t CVVolume); // no deletes version
+void BeginPlayND(int Channel,const char *wavfilename, uint8_t CVVolume); //no deletes version
 bool TimeToChuff(uint32_t TimeNow);
-void Chuff (String ChuffChoice);
+void Chuff(String ChuffChoice, String ChuffChoiceFast,long ChuffSwitchPeriod);
 void AudioLoop(int32_t TimeNow);
 bool SoundEffectPlaying(void);
 void SoundEffects(void); 
@@ -30,7 +31,7 @@ void SoundEffects(void);
   static const uint8_t D8   = 15;
 */
 /*//Temporary override sound volumes 
-CV[100]=127; // Overall volume control
+CV[100]=127; //Overall volume control
 CV[101]=127; //volume for F1 
 CV[102]=127;
 CV[103]=127;
@@ -38,10 +39,10 @@ CV[104]=127;
 CV[105]=127;
 CV[106]=127;
 CV[107]=127;
-CV[108]=127; // Volume for F8
+CV[108]=127; //Volume for F8
 
-CV[110]=127; // volume for chuffs
-CV[111]=127; // volume for Brake Squeal
+CV[110]=127; //volume for chuffs
+CV[111]=127; //volume for Brake Squeal
 //
 */  
 /*expected wav files are:

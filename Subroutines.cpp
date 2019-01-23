@@ -1,7 +1,13 @@
-#include "Subroutines.h";
+#include "Subroutines.h"
 #include <Arduino.h> //needed 
-  #include "Directives.h";
-
+//#include "Globals.h"
+extern uint8_t hrs;
+extern uint8_t mins;
+extern uint8_t secs;  
+extern uint8_t Message_Length;
+extern uint8_t recMessage[128];
+extern uint8_t NodeMCUPinD[12];
+// globals
 
 #define RN_PACKET_NETID  0
 #define RN_PACKET_RCPTH  1
@@ -12,12 +18,8 @@
 #define RN_PACKET_ACTION 6
 #define RN_PACKET_LEN    7
 #define UID_LEN         7
-//#include "Globals.h";
-extern uint8_t hrs;
-extern uint8_t mins;
-extern uint8_t secs;  
-extern uint8_t Message_Length;
-extern uint8_t NodeMCUPinD[12];
+
+
 
 void PrintTime(String MSG) {
 /*      Serial.println("");
@@ -36,6 +38,7 @@ void PrintTime(String MSG) {
       Serial.print(" ");
       Serial.print(MSG);
       */
+      delay(1);
 Serial.printf("@<%02d:%02d:%02ds>:%s",hrs,mins,secs,MSG.c_str());
 }
 
@@ -59,9 +62,9 @@ int getTwoBytesFromMessageHL( uint8_t* msg, uint8_t highloc) {
 */
 void SetWordIn_msg_loc_value(uint8_t* msg, uint8_t firstbyte, int value) {
   msg[firstbyte + 1] = value % 256; //low byte
-  msg[firstbyte] = value / 256; // order is high first then low
+  msg[firstbyte] = value / 256; //order is high first then low
 }
-int IntFromPacket_at_Addr(uint8_t* msg, uint8_t highbyte) { // example IntFromPacket_at_Addr(recMessage,Recipient_Addr))
+int IntFromPacket_at_Addr(uint8_t* msg, uint8_t highbyte) { //example IntFromPacket_at_Addr(recMessage,Recipient_Addr))
   return msg[highbyte + 1] + msg[highbyte] * 256;
 }
 
@@ -127,7 +130,7 @@ bool compareUid(byte *buffer1, byte *buffer2, byte bufferSize) {
 
 void Show_MSG() {
   if (Message_Length >= 1) {
-#if _SERIAL_SUBS_DEBUG
+#ifdef _SERIAL_SUBS_DEBUG
     Serial.println();
     Serial.print(F("SHOW Message :"));
     Serial.print(F(" Len:"));
@@ -140,20 +143,20 @@ void Show_MSG() {
 }
 extern void DebugSprintfMsgSend(int CX);
 extern char DebugMsg[127];
-void FlashMessage (char* msg, int Repeats, int ON, int Off) {
+void FlashMessage (String msg, int Repeats, int ON, int Off) {
   Serial.println(msg);
   DebugSprintfMsgSend( sprintf ( DebugMsg, "Flashing MSG"));
   for (int i = 0; i <= Repeats; i++) {
-    //  Serial.print("+");
-    digitalWrite (NodeMCUPinD[SignalLed] , SignalON) ; ///   turn on
+    //Serial.print("+");
+    digitalWrite (NodeMCUPinD[SignalLed] , SignalON) ; ///turn on
     delay(ON);
-    digitalWrite (NodeMCUPinD[SignalLed] , SignalOFF) ; ///   turn OFF
+    digitalWrite (NodeMCUPinD[SignalLed] , SignalOFF) ; ///turn OFF
     delay(Off);
   }
 
 }
 void SetPortPinIndex() {
-  // set my indexed port range for indexed use later  other code translates D0 to the pin number ESP uses.. 
+  //set my indexed port range for indexed use later  other code translates D0 to the pin number ESP uses.. 
   NodeMCUPinD[0] = D0;
   NodeMCUPinD[1] = D1;
   NodeMCUPinD[2] = D2;
@@ -163,8 +166,8 @@ void SetPortPinIndex() {
   NodeMCUPinD[6] = D6;
   NodeMCUPinD[7] = D7;
   NodeMCUPinD[8] = D8;
-//    static const uint8_t D9   = 3;
-//  static const uint8_t D10  = 1;
+//static const uint8_t D9   = 3;
+//static const uint8_t D10  = 1;
  //no D9 wemos NodeMCUPinD[9] = D9;
  //no D10 wemos  NodeMCUPinD[10] = D10;
 

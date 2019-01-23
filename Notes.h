@@ -119,7 +119,7 @@ version 150 :Complete modification to where things are stored and defined...
     
     
 110 improving the loco functionality, making front and rear lights programming (port selection) more consistent. 
-109   revised and hard set group 5, msg 7 'read options' (// report addr and status) response , modified msg decoded to ignore any messages sent by this node, that can be reflected back via mqqt glogal sends.
+109   revised and hard set group 5, msg 7 'read options' (//report addr and status) response , modified msg decoded to ignore any messages sent by this node, that can be reflected back via mqqt glogal sends.
     and modified node shutdown so it turne POWEROn off.. (this actually has no effect as the servos and the lights do not check this variable at the moment)
 108 added ability to print eprom settings so that the default settings can have a copy of a "real" set of settings
 107 revised location for MQQT server address in RN[14] moved set eepromdefault  to rocsubs (SV now empty) (part of trying to rework with .cpp files)

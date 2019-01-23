@@ -1,9 +1,10 @@
 #ifndef _subs_h
 #define _subs_h
   #include <Arduino.h> //needed 
+  #include "Directives.h"
+  
 
-//void DebugMsgSend (char* topic, char* payload) ;
-//  void DebugSprintfMsgSend(int CX);
+//void DebugSprintfMsgSend(int CX);
 void PrintTime(String MSG) ;
 int rnSenderAddrFromPacket(unsigned char* rn, int seven);
 int rnReceipientAddrFromPacket(unsigned char* rn, int seven) ;
@@ -20,7 +21,7 @@ bool compareUid(byte *buffer1, byte *buffer2, byte bufferSize) ;
 
 void Show_MSG(void);
 
-void FlashMessage (char* msg, int Repeats, int ON, int Off) ;
+void FlashMessage (String msg, int Repeats, int ON, int Off) ;
 void SetPortPinIndex(void);
  
 #endif
