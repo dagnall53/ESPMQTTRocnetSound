@@ -1,4 +1,7 @@
-# Please do not use this code- yet---
+# Please now use https://github.com/dagnall53/WiRocS 
+
+##
+This code is not being updated anymore.. --
 ## there is a significant bug I only found after uploading
 When running and attached to a serial terminal, the serial terminal disconnects after about 10 secs, but he code continued working. However, when run stand alone, the node has problems starting up and without the serial interface connected, I cannot yet see why this is happening. I will fix it, but if you need code urgently please use the previous version (V21) which is available at https://github.com/dagnall53/ESPWIFIRocnet
 
